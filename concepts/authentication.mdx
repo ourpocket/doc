@@ -1,0 +1,58 @@
+---
+title: "Authentication model"
+description: "Choose the correct credential for management and runtime requests."
+---
+
+OurPocket uses different credentials for users, projects, providers, and webhook registrations. They are not interchangeable.
+
+## Credential types
+
+| Credential | Used for | Transport |
+| --- | --- | --- |
+| User JWT | Dashboard and management endpoints | `Authorization: Bearer <jwt>` |
+| Project API key | Wallets, transactions, and webhook ingress | Bearer token or `x-api-key` |
+| Provider credential | Calls from OurPocket to a provider | Request payload or provider configuration |
+| Webhook secret | Reserved by webhook registration | Stored but not currently used for outbound signing |
+
+## User JWT
+
+`POST /v1/auth/login` returns a JWT. The dashboard stores it locally and attaches it to protected management requests.
+
+```http
+Authorization: Bearer eyJhbGciOi...
+```
+
+The token contains user ID, email, role, and status. A banned status is rejected by protected management routes.
+
+<Warning>
+  User status is read from the signed token by the status guard. A status change may not take effect until the token expires and the user signs in again.
+</Warning>
+
+## Project API key
+
+Runtime APIs accept either header:
+
+```http
+Authorization: Bearer op_test_sk_...
+```
+
+```http
+x-api-key: op_test_sk_...
+```
+
+If both are provided, the bearer value takes precedence.
+
+Project-key verification resolves the project, checks expiration and quota, increments usage, and makes project context available to the operation.
+
+## Credential separation
+
+- Never use a user JWT in a customer application’s wallet integration.
+- Never expose a project key in browser code.
+- Never use a provider key as an OurPocket project key.
+- Never treat a webhook registration secret as implemented proof of request authenticity.
+
+## Registration and verification
+
+Local accounts begin unverified. Verification and password-reset tokens are random values stored as SHA-256 hashes and expire after ten minutes.
+
+The backend accepts a declared `google` registration provider, but the repository does not verify a Google identity token. Do not expose that path as Google OAuth without an external verification layer.

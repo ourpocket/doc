@@ -1,0 +1,96 @@
+---
+title: "Local development"
+description: "Run the OurPocket frontend and API locally."
+---
+
+## Prerequisites
+
+- Node.js 20 for the backend container workflow
+- pnpm for the backend package scripts
+- Bun for the frontend and TypeORM command used by the backend
+- Docker and Docker Compose for PostgreSQL and Redis
+- A reachable external ledger service
+- Provider sandbox credentials for provider-backed operations
+
+## Backend configuration
+
+Create `infra/.env` and configure at least:
+
+```bash
+NODE_ENV=development
+PORT=3000
+JWT_SECRET=replace-with-a-long-secret
+DATABASE_HOST=localhost
+DATABASE_PORT=5432
+DATABASE_USERNAME=ourpocket
+DATABASE_PASSWORD=ourpocket
+DATABASE_NAME=ourpocket
+LEDGER_URL=http://localhost:4000
+FRONTEND_URL=http://localhost:3035
+```
+
+Email delivery additionally uses `RESEND_API_KEY`. Provider and project configuration encryption can use `PROVIDER_CONFIG_ENCRYPTION_KEY` and `PROJECT_API_KEY_ENCRYPTION_SECRET`.
+
+<Warning>
+  Do not rely on development fallback encryption secrets outside local development.
+</Warning>
+
+## Start dependencies
+
+From `infra/`:
+
+```bash
+docker compose up postgres redis -d
+```
+
+The Compose project does not provide the external ledger. Start that service separately and confirm `LEDGER_URL` is reachable from the API process.
+
+## Start the API
+
+```bash
+pnpm install
+pnpm run migration:run
+pnpm run seed
+pnpm run start:dev
+```
+
+The API listens on `http://localhost:3000` by default. Swagger is available at `http://localhost:3000/docs`.
+
+## Start the frontend
+
+From `ourpocket/`:
+
+```bash
+bun install
+bun run dev
+```
+
+Optional frontend configuration:
+
+```bash
+VITE_API_BASE_URL=http://localhost:3000/v1
+VITE_API_PUBLIC_URL=http://localhost:3000
+```
+
+The frontend listens on `http://localhost:3035`.
+
+## Validate changes
+
+Frontend:
+
+```bash
+bun run check
+bun run build
+```
+
+Backend:
+
+```bash
+pnpm run build
+pnpm run test
+pnpm run test:e2e
+```
+
+<Note>
+  Backend dependency build scripts may require explicit pnpm approval before compilation and tests can run in a fresh environment.
+</Note>

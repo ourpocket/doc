@@ -1,0 +1,60 @@
+---
+title: "Endpoint index"
+description: "Find the management and runtime endpoints implemented by the API."
+---
+
+## Authentication
+
+| Method | Path | Auth |
+| --- | --- | --- |
+| `POST` | `/v1/auth/register` | None |
+| `POST` | `/v1/auth/login` | None |
+| `POST` | `/v1/auth/verify-email` | None |
+| `POST` | `/v1/auth/request-verify-email` | None |
+| `POST` | `/v1/auth/forgotten-password` | None |
+| `POST` | `/v1/auth/reset-password` | None |
+
+## Platform accounts and projects
+
+| Method | Path | Auth |
+| --- | --- | --- |
+| `POST` | `/v1/platform-accounts` | JWT |
+| `GET` | `/v1/platform-accounts/me` | JWT |
+| `GET` | `/v1/platform-accounts/me/projects` | JWT |
+| `POST` | `/v1/projects` | JWT |
+| `GET` | `/v1/projects` | JWT |
+| `GET` | `/v1/projects/{projectId}` | JWT |
+
+## Project configuration
+
+| Method | Path | Auth |
+| --- | --- | --- |
+| `POST` | `/v1/projects/{projectId}/api-keys` | JWT |
+| `GET` | `/v1/projects/{projectId}/api-keys` | JWT |
+| `DELETE` | `/v1/projects/{projectId}/api-keys/{keyId}` | JWT |
+| `GET` | `/v1/provider-catalog` | JWT |
+| `POST` | `/v1/projects/{projectId}/providers/connect` | JWT |
+| `POST` | `/v1/projects/{projectId}/providers` | JWT |
+| `GET` | `/v1/projects/{projectId}/providers` | JWT |
+| `POST` | `/v1/projects/{projectId}/webhooks` | JWT |
+| `GET` | `/v1/projects/{projectId}/webhooks` | JWT |
+| `DELETE` | `/v1/projects/{projectId}/webhooks/{webhookId}` | JWT |
+| `GET` | `/v1/projects/{projectId}/usage-metrics` | JWT |
+
+## Runtime API
+
+| Method | Path | Auth |
+| --- | --- | --- |
+| `POST` | `/v1/wallets/create` | Project key |
+| `POST` | `/v1/wallets` | Project key, legacy alias |
+| `GET` | `/v1/wallets/{walletId}` | Project key |
+| `POST` | `/v1/wallets/credit` | Project key |
+| `POST` | `/v1/wallets/debit` | Project key |
+| `POST` | `/v1/wallets/transfer` | Project key |
+| `POST` | `/v1/transactions` | Project key |
+| `GET` | `/v1/transactions/{transactionId}` | Project key |
+| `POST` | `/ourpocket/webhook` | Project key |
+
+## Legacy surfaces
+
+The backend also contains user-level API-key, user-provider, and process-local wallet-provider endpoints. They are not part of the current project-scoped dashboard workflow and should be treated as legacy until product ownership confirms their status.

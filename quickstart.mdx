@@ -1,0 +1,104 @@
+---
+title: "Quickstart"
+description: "Onboard a workspace, prepare a project, and send a first request from the dashboard."
+---
+
+This guide takes you from your first login to a test request through the OurPocket dashboard.
+
+## What you will do
+
+<CardGroup cols={3}>
+  <Card title="Set up your workspace" icon="building">
+    Complete the onboarding flow that appears after login.
+  </Card>
+  <Card title="Prepare a project" icon="folder">
+    Select a project, open its API keys, and configure an active provider.
+  </Card>
+  <Card title="Send a test request" icon="terminal">
+    Paste the test API key into a dashboard request console and inspect the response.
+  </Card>
+</CardGroup>
+
+## Before you begin
+
+You need an OurPocket account. For provider-backed operations, you also need test credentials for either Paystack or Flutterwave. Those are the active provider adapters; other catalog entries are currently marked **Coming soon**.
+
+<Steps>
+  <Step title="Sign in and complete workspace onboarding">
+    Sign in to OurPocket. Complete the workspace onboarding flow shown after login before attempting to use project-level dashboard pages.
+  </Step>
+  <Step title="Create a project">
+    Open **Projects**, select **New project**, and provide a name and optional description. Submit the form and confirm that the project appears in the list.
+  </Step>
+  <Step title="Select the project">
+    Choose **Use Project** and verify the **Selected** badge. The dashboard stores this choice in local browser context and uses it on project-aware pages.
+  </Step>
+  <Step title="Open API Keys">
+    Navigate to **API Keys**. The page automatically creates a missing test key or live key for the selected project. You do not need to run a separate manual key-generation step.
+  </Step>
+  <Step title="Copy the test key">
+    Copy the test-environment key for your first request and store it securely. Do not use the live key while developing.
+  </Step>
+  <Step title="Connect an active provider">
+    Open **Providers** and configure Paystack or Flutterwave with appropriate test credentials. Providers marked **Coming soon** cannot be connected.
+  </Step>
+  <Step title="Open a request console">
+    Navigate to **Wallets** or **Transactions** and choose an available operation. These screens are request consoles, not wallet inventory or transaction history pages.
+  </Step>
+  <Step title="Paste the API key">
+    Manually paste the project test key into the console. Selecting a project does not automatically insert or authenticate with its key.
+  </Step>
+  <Step title="Submit the request">
+    Complete the required fields, review any amount, currency, reference, wallet identifier, and provider payload, then send the request.
+  </Step>
+  <Step title="Save the result">
+    Inspect the immediate response and persist important references, wallet IDs, transaction IDs, and statuses in your own application. The consoles do not provide durable inventory or history management.
+  </Step>
+</Steps>
+
+<Warning>
+  Treat project API keys and provider credentials as secrets. Never commit them to source control or expose them in frontend application code. Use a test key with provider test credentials during development.
+</Warning>
+
+## Optional webhook configuration
+
+You can open **Webhooks** and create an endpoint record for the selected project. New records subscribe only to `transaction.success` and `transaction.failed`.
+
+<Warning>
+  Outbound webhook delivery and request signing are not implemented. A saved endpoint will not receive events, so do not use webhook configuration as part of a production transaction flow.
+</Warning>
+
+## Troubleshooting
+
+### I cannot reach project tools
+
+Complete the workspace onboarding flow after login. If it reappears, verify that all required fields were submitted successfully.
+
+### API Keys does not show the project I expected
+
+Return to **Projects**, choose **Use Project** for the intended project, and reopen **API Keys**. Project selection is stored in local browser context.
+
+### The request console asks for an API key
+
+This is expected. Copy the test key from **API Keys** and paste it into the console manually.
+
+### The provider cannot be connected
+
+Use Paystack or Flutterwave. Other providers labeled **Coming soon** are not active adapters.
+
+### I cannot find wallet inventory or transaction history
+
+The **Wallets** and **Transactions** pages submit requests and show immediate responses. Store identifiers and transaction state in your own application for durable tracking.
+
+### My webhook endpoint receives nothing
+
+Outbound webhook delivery is not implemented. The dashboard currently stores endpoint configuration only.
+
+<CardGroup cols={2}>
+  <Card title="Accounts and projects" icon="folder" href="/user-guide/account-and-projects">
+    Learn how onboarding and local project selection work.
+  </Card>
+  <Card title="Wallets and transactions" icon="wallet" href="/user-guide/wallets-and-transactions">
+    Use the request consoles safely and interpret responses.
+  </Card>
+</CardGroup>

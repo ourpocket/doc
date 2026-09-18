@@ -1,0 +1,64 @@
+---
+title: "Enums and statuses"
+description: "Reference the stable values used in requests and responses."
+---
+
+## Project API-key scope
+
+| Value | Meaning |
+| --- | --- |
+| `test` | Development or test credential label |
+| `live` | Production credential label |
+
+## Transaction type
+
+- `credit`
+- `debit`
+- `transfer`
+
+## Transaction status
+
+- `pending`
+- `success`
+- `failed`
+
+## Routing strategy
+
+- `best_success_rate`
+- `lowest_fees`
+- `fastest_settlement`
+- `custom_priority`
+
+## Provider type
+
+The runtime routing engine currently executes:
+
+- `paystack`
+- `flutterwave`
+
+Other provider enum values or service implementations should not be assumed executable through the routing engine.
+
+## Provider catalog status
+
+- `draft`
+- `coming_soon`
+- `active`
+- `maintenance`
+- `retired`
+
+## Provider capability
+
+- `wallet_operations`
+- `payment_collection`
+- `bank_data`
+- `identity_verification`
+
+## Webhook event names
+
+- `transaction.success`
+- `transaction.failed`
+- `wallet.created`
+- `wallet.credited`
+- `wallet.debited`
+- `transfer.success`
+- `transfer.failed`

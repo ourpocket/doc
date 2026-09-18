@@ -1,0 +1,36 @@
+---
+title: "Language clients"
+description: "Integrate OurPocket from TypeScript, Python, Go, or PHP."
+---
+
+OurPocket exposes a JSON REST API that works with any server-side HTTP client.
+
+<Note>
+  Official installable SDK packages are not published in this repository yet. The guides in this section provide small, reusable client wrappers around the real API so you can integrate today without depending on an unavailable package.
+</Note>
+
+<CardGroup cols={2}>
+  <Card title="TypeScript" icon="js" href="/sdks/typescript">
+    Build a typed client with the native `fetch` API.
+  </Card>
+  <Card title="Python" icon="python" href="/sdks/python">
+    Use a reusable client built with `requests`.
+  </Card>
+  <Card title="Go" icon="golang" href="/sdks/go">
+    Create a compact client with `net/http`.
+  </Card>
+  <Card title="PHP" icon="php" href="/sdks/php">
+    Send authenticated requests with cURL.
+  </Card>
+</CardGroup>
+
+## Shared configuration
+
+Every language client needs:
+
+```text
+OURPOCKET_BASE_URL=https://your-ourpocket-api.example/v1
+OURPOCKET_API_KEY=your-project-api-key
+```
+
+Run these clients only in trusted server environments. Do not embed project or provider credentials in frontend JavaScript or mobile binaries.

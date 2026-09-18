@@ -1,0 +1,58 @@
+---
+title: "Wallets"
+description: "Create project-scoped wallets and manage their balances."
+---
+
+A wallet represents a balance-bearing resource in one currency. Wallet identity belongs to your OurPocket project, while balance accounting is handled by the connected ledger service.
+
+## Create a wallet
+
+Use `POST /v1/wallets/create` with a project API key.
+
+```json
+{
+  "currency": "NGN",
+  "userId": "customer_8462"
+}
+```
+
+You can also provide a supported provider and provider-specific fields when wallet creation should create a corresponding resource with that provider.
+
+## Retrieve a wallet
+
+Use `GET /v1/wallets/{walletId}`. The response combines wallet identity with its current ledger balance.
+
+## Credit a wallet
+
+A credit adds value to a wallet. It requires:
+
+- Wallet ID
+- Numeric amount string
+- Currency
+- Unique application reference
+
+The operation can be ledger-only or provider-backed.
+
+## Debit a wallet
+
+A debit removes value from a wallet. Use the same core fields as a credit and include provider routing fields only when needed.
+
+## Transfer between wallets
+
+A transfer moves value from one project wallet to another.
+
+```json
+{
+  "fromWalletId": "source_wallet_id",
+  "toWalletId": "destination_wallet_id",
+  "amount": "5000",
+  "currency": "NGN",
+  "reference": "transfer_1284"
+}
+```
+
+Both wallets must belong to the authenticated project and use the requested currency.
+
+<Note>
+  Use the unified Transactions API when you need OurPocket to store transaction status for later retrieval. Direct wallet operations return their immediate execution result but do not create the same transaction record.
+</Note>

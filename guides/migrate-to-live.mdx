@@ -1,0 +1,29 @@
+---
+title: "Move from test to live"
+description: "Prepare credentials and integrations for intended production traffic."
+---
+
+<Steps>
+  <Step title="Complete test workflows">
+    Test wallet creation, credits, debits, transfers, failure handling, and transaction reconciliation with a project test key.
+  </Step>
+  <Step title="Review provider credentials">
+    Replace sandbox provider credentials with credentials intended for the live provider environment.
+  </Step>
+  <Step title="Store the live key">
+    Keep the live project key in a production secret manager. Never copy it into frontend code or source control.
+  </Step>
+  <Step title="Change application configuration">
+    Update your server environment to use the live project key. Keep the API base URL aligned with your deployed OurPocket environment.
+  </Step>
+  <Step title="Run a controlled operation">
+    Start with a low-risk wallet or transaction and verify the provider result, ledger balance, and stored transaction status.
+  </Step>
+  <Step title="Enable monitoring">
+    Track authentication errors, quota usage, provider failures, ledger failures, duplicate references, and unresolved pending transactions.
+  </Step>
+</Steps>
+
+<Warning>
+  A live key is a credential label and project scope. It does not automatically switch provider credentials from sandbox to production.
+</Warning>

@@ -1,0 +1,97 @@
+---
+title: "Accounts and projects"
+description: "Complete workspace onboarding, create projects, and control the active project context."
+---
+
+After you sign in, OurPocket guides you through workspace onboarding before you use project-level tools. Complete this setup first, then create or select a project for the work you want to perform.
+
+## Complete workspace onboarding
+
+<Steps>
+  <Step title="Sign in">
+    Sign in with your account credentials. If this is your first session, the dashboard opens the workspace onboarding flow.
+  </Step>
+  <Step title="Provide the workspace details">
+    Enter the information requested by the onboarding flow and submit it. This creates the workspace context used by the dashboard.
+  </Step>
+  <Step title="Continue to your projects">
+    After onboarding completes, open **Projects** to create a project or select an existing one.
+  </Step>
+</Steps>
+
+<Note>
+  Workspace onboarding happens after login. If the dashboard keeps returning you to onboarding, confirm that every required field has been completed and retry the submission before opening a project tool.
+</Note>
+
+## Create a project
+
+Projects separate configuration such as API keys, provider connections, and webhook endpoint records.
+
+<Steps>
+  <Step title="Open Projects">
+    Select **Projects** in the dashboard navigation.
+  </Step>
+  <Step title="Start a new project">
+    Select **New project** and enter a project name and, when needed, a description.
+  </Step>
+  <Step title="Create the project">
+    Submit the form, then verify that the project appears in the project list.
+  </Step>
+  <Step title="Select the project">
+    Choose **Use Project** for the project you want to work with. The dashboard marks the active project as **Selected**.
+  </Step>
+</Steps>
+
+## Understand project selection
+
+The dashboard keeps the selected project in local browser context. Project-aware pages read that context to decide which project's API keys, provider connections, webhook endpoints, and metrics to display or configure.
+
+<Warning>
+  Project selection is a dashboard convenience, not an API credential. Always use an API key that belongs to the intended project when you submit a request from the **Wallets** or **Transactions** console.
+</Warning>
+
+Because the selection is local, another browser, browser profile, or device may not share it. Reconfirm the selected project after clearing browser storage or changing browsing environments.
+
+<CardGroup cols={2}>
+  <Card title="API keys" icon="key" href="/user-guide/api-keys">
+    Open the API keys page for the selected project and copy the appropriate test or live key.
+  </Card>
+  <Card title="Providers" icon="plug" href="/user-guide/providers">
+    Configure an active provider adapter for the selected project.
+  </Card>
+</CardGroup>
+
+## Switch projects safely
+
+<Steps>
+  <Step title="Return to Projects">
+    Open **Projects** instead of assuming the previously used project is still active.
+  </Step>
+  <Step title="Choose the target project">
+    Select **Use Project** next to the project you intend to configure.
+  </Step>
+  <Step title="Verify the selection">
+    Confirm that the project displays the **Selected** badge before opening another project-aware page.
+  </Step>
+  <Step title="Match the API key">
+    When using a request console, paste a key issued for the same project and environment.
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+### The dashboard asks me to onboard again
+
+Complete all required workspace onboarding fields and submit the flow. If it was previously completed in another browser context, sign in again and verify that you are using the expected account.
+
+### A project page has no project context
+
+Open **Projects**, select **Use Project**, and return to the page. If the issue persists, refresh the dashboard and select the project again.
+
+### I see resources from the wrong project
+
+Return to **Projects** and inspect the **Selected** badge. Switch to the intended project before changing API keys, providers, or webhook endpoint records.
+
+### A request console rejects my API key
+
+The selected project and the manually pasted API key are separate inputs. Open **API Keys** for the intended project, copy the correct test or live key, and replace the value in the console.

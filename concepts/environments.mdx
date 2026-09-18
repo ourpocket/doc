@@ -1,0 +1,49 @@
+---
+title: "Environments and URLs"
+description: "Configure frontend, API, database, ledger, and provider environments."
+---
+
+## API URLs
+
+The backend uses URI versioning with version `1` as the default. Management and runtime APIs are normally available under:
+
+```text
+http://localhost:3000/v1
+```
+
+The normalized webhook ingress is version-neutral:
+
+```text
+http://localhost:3000/ourpocket/webhook
+```
+
+Swagger is mounted at:
+
+```text
+http://localhost:3000/docs
+```
+
+## Frontend variables
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `VITE_API_BASE_URL` | `http://localhost:3000/v1` | Versioned API requests |
+| `VITE_API_PUBLIC_URL` | `http://localhost:3000` | Version-neutral routes and displayed webhook ingress URL |
+
+## Test and live scopes
+
+Project API keys use `test` and `live` scopes. The scope affects key identity and project key uniqueness.
+
+<Warning>
+  The repository does not implement separate databases, provider sandboxes, or routing behavior based only on key scope. Environment separation also depends on the provider credentials and deployment configuration used by your request.
+</Warning>
+
+## Provider environments
+
+Use sandbox credentials for development and production credentials only in live deployments. Paystack and Flutterwave interpret provider-specific payloads and environment credentials according to their APIs.
+
+## Ledger URL
+
+`LEDGER_URL` identifies the external ledger service and defaults to `http://localhost:4000`.
+
+Docker Compose does not include the ledger service. Configure a reachable URL explicitly when running the API in a container.

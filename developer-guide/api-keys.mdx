@@ -1,0 +1,94 @@
+---
+title: "API keys"
+description: "Authenticate versioned API requests with project-scoped test and live keys."
+---
+
+Project API keys authenticate requests made on behalf of an OurPocket project. Each key belongs to exactly one project and one environment scope.
+
+## Scopes and limits
+
+| Scope | Intended use |
+| --- | --- |
+| `test` | Development, automated tests, and non-production integrations |
+| `live` | Production traffic |
+
+A project can have one key per scope: one test key and one live key. Creating another key for a scope that already has one returns a conflict until the existing key is revoked.
+
+New keys have a default quota of `1000` unless a different quota is supplied when the key is created. The backend increments the key's usage counter whenever it successfully verifies the key, before the requested operation runs. Usage therefore measures authenticated requests, not only operations that complete successfully.
+
+<Warning>
+  Do not use a test key for production traffic or a live key in development. Scope is encoded in the key and checked during verification.
+</Warning>
+
+## Authenticate a request
+
+Most public API endpoints are versioned under `/v1`. Runtime authentication accepts either of these headers:
+
+```http
+Authorization: Bearer <project-api-key>
+```
+
+or:
+
+```http
+x-api-key: <project-api-key>
+```
+
+Use one authentication header per request. The Bearer form is used throughout this guide.
+
+```bash
+curl --request GET \
+  --url "$OURPOCKET_BASE_URL/v1/wallets/4d845d2f-8314-45a1-b061-3ee56dbb29ec" \
+  --header "Authorization: Bearer $OURPOCKET_API_KEY"
+```
+
+`OURPOCKET_BASE_URL` is the origin of your OurPocket deployment; do not append `/v1` to it when using the examples in this guide.
+
+## Successful responses
+
+Successful API responses use a common envelope:
+
+```json
+{
+  "message": "Request successful",
+  "status": "success",
+  "data": {}
+}
+```
+
+The value and shape of `data` depend on the endpoint. Read application results from `data` rather than treating the top-level object as the endpoint resource.
+
+## Create and store keys
+
+Create keys from the selected project's API-key controls and choose the intended scope. Store project keys in a server-side secret manager or protected environment variable.
+
+```bash
+OURPOCKET_API_KEY="<project-api-key>"
+```
+
+<Warning>
+  The current backend key-list operation decrypts and returns stored raw project keys. Treat access to project key management as secret-bearing access: restrict it to trusted operators, avoid logging its responses, and never expose it through browser or mobile clients.
+</Warning>
+
+## Quota behavior
+
+When a protected endpoint verifies a project key, the backend:
+
+1. validates the key and its scope;
+2. rejects expired or unknown keys;
+3. rejects the request if current usage has reached the quota; and
+4. increments usage for the successful verification.
+
+Because verification occurs before endpoint execution, validation errors and downstream failures can still consume quota after authentication succeeds.
+
+## Revoke and rotate
+
+Revoke a key immediately if it is exposed or no longer needed. Since only one key can exist for each project scope, rotation requires revoking the existing scoped key before creating its replacement. Update the consuming server before sending further requests with the old key.
+
+## Security practices
+
+- Keep keys out of source control, client-side JavaScript, mobile binaries, URLs, and analytics payloads.
+- Use independent test and live secrets in your deployment environment.
+- Redact `Authorization`, `x-api-key`, and raw key-list response fields from logs.
+- Keep OurPocket project keys separate from Paystack and Flutterwave provider credentials.
+- Revoke credentials when team or service access changes.

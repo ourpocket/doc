@@ -1,0 +1,68 @@
+---
+title: "API conventions"
+description: "Review versioning, validation, responses, authentication, and identifiers."
+---
+
+## Versioning
+
+OurPocket uses URI versioning. Unless marked version-neutral, paths in this documentation begin with `/v1`.
+
+## Content type
+
+Send JSON request bodies with:
+
+```http
+Content-Type: application/json
+```
+
+## Successful responses
+
+Successful controller responses are wrapped in a common envelope:
+
+```json
+{
+  "message": "Request successful",
+  "status": "success",
+  "data": {
+    "id": "resource-id"
+  }
+}
+```
+
+Controllers can provide a more specific `message`. Clients should read the domain payload from `data`.
+
+## Validation
+
+Global validation:
+
+- Transforms supported request values.
+- Removes unsupported properties.
+- Rejects non-whitelisted properties.
+- Applies DTO validation before controller execution.
+
+## Identifiers
+
+Resource identifiers are UUIDs unless an endpoint documents another format. Wallet, transaction, project, webhook, and API-key IDs should be treated as opaque strings.
+
+## Amounts
+
+Wallet and transaction request amounts are numeric strings:
+
+```json
+{
+  "amount": "5000",
+  "currency": "NGN"
+}
+```
+
+The repository does not define whether every provider payload uses major or minor currency units. Confirm provider-specific expectations before production use.
+
+## References
+
+Unified transactions enforce a unique reference per project. A duplicate returns a conflict rather than replaying the previous response.
+
+Direct wallet ledger endpoints pass references to the external ledger but do not enforce uniqueness in the API database.
+
+## Dates
+
+Persisted resources use ISO 8601 timestamp strings in API responses.

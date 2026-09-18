@@ -1,0 +1,110 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "maple",
+  "name": "OurPocket",
+  "colors": {
+    "primary": "#fb8a2e",
+    "light": "#fb8a2e",
+    "dark": "#fb8a2e"
+  },
+  "favicon": "/logo/simple_logo.png",
+  "navigation": {
+    "pages": [
+      {
+        "group": "Get started",
+        "pages": ["index", "quickstart"]
+      },
+      {
+        "group": "Features",
+        "pages": [
+          "features/overview",
+          "features/wallets",
+          "features/transactions",
+          "features/routing",
+          "user-guide/providers",
+          "user-guide/webhooks"
+        ]
+      },
+      {
+        "group": "Dashboard guide",
+        "pages": [
+          "user-guide/account-and-projects",
+          "developer-guide/api-keys",
+          "user-guide/wallets-and-transactions"
+        ]
+      },
+      {
+        "group": "Language clients",
+        "pages": [
+          "sdks/overview",
+          "sdks/typescript",
+          "sdks/python",
+          "sdks/go",
+          "sdks/php"
+        ]
+      },
+      {
+        "group": "Integration guides",
+        "pages": [
+          "guides/create-first-wallet",
+          "guides/credit-a-wallet",
+          "guides/migrate-to-live"
+        ]
+      },
+      {
+        "group": "API reference",
+        "pages": [
+          "reference/api-conventions",
+          "developer-guide/wallet-api",
+          "developer-guide/provider-routing",
+          "developer-guide/webhook-events",
+          "reference/errors",
+          "reference/endpoints",
+          "reference/enums"
+        ]
+      },
+      {
+        "group": "Help",
+        "pages": ["operations/troubleshooting"]
+      }
+    ],
+    "global": {
+      "anchors": [
+        {
+          "anchor": "GitHub",
+          "href": "https://github.com/ourpocket/ourpocket",
+          "icon": "github"
+        }
+      ]
+    }
+  },
+  "logo": {
+    "light": "/logo/our_pocket.png",
+    "dark": "/logo/our_pocket.png"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "API reference",
+        "href": "/reference/endpoints"
+      },
+      {
+        "label": "GitHub",
+        "href": "https://github.com/ourpocket/ourpocket"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Quickstart",
+      "href": "/quickstart"
+    }
+  },
+  "contextual": {
+    "options": ["copy", "view", "chatgpt", "claude", "perplexity", "mcp", "cursor", "vscode"]
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/ourpocket/ourpocket"
+    }
+  }
+}

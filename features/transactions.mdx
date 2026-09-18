@@ -1,0 +1,55 @@
+---
+title: "Transactions"
+description: "Submit durable credit, debit, and transfer operations with stored status."
+---
+
+The Transactions API stores an OurPocket transaction record before executing the requested financial operation. Use it when your application needs a transaction ID and durable status.
+
+## Transaction types
+
+| Type | Required wallet fields |
+| --- | --- |
+| `credit` | `walletId` |
+| `debit` | `walletId` |
+| `transfer` | `fromWalletId`, `toWalletId` |
+
+All transaction types require `amount`, `currency`, and `reference`.
+
+## Submit a transaction
+
+```json
+{
+  "type": "credit",
+  "walletId": "wallet_id",
+  "amount": "5000",
+  "currency": "NGN",
+  "reference": "deposit_1284"
+}
+```
+
+OurPocket creates the record as `pending`, executes the operation, and then updates it to `success` or `failed`.
+
+## Retrieve a transaction
+
+Use `GET /v1/transactions/{transactionId}` with the same project API key.
+
+## References
+
+References are unique within a project. Create them in your own system and reuse the same value across your order, payment, and reconciliation records.
+
+<Warning>
+  Submitting a duplicate reference returns a conflict. It does not replay the previous response automatically.
+</Warning>
+
+## Metadata
+
+Use `metadata` for identifiers your application needs during reconciliation.
+
+```json
+{
+  "metadata": {
+    "orderId": "order_1284",
+    "customerId": "customer_8462"
+  }
+}
+```

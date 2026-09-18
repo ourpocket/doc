@@ -1,0 +1,55 @@
+---
+title: "Provider routing"
+description: "Choose how wallet operations reach Paystack or Flutterwave."
+---
+
+OurPocket can execute wallet operations through Paystack or Flutterwave when you include provider credentials with the request.
+
+## Direct selection
+
+Set `provider` when your application already knows which provider to use.
+
+```json
+{
+  "provider": "flutterwave",
+  "providerApiKey": "provider-secret"
+}
+```
+
+## Strategy-based selection
+
+Supply multiple credential candidates and select a routing strategy.
+
+| Strategy | Selection behavior |
+| --- | --- |
+| `best_success_rate` | Chooses the highest supplied `successRate` |
+| `lowest_fees` | Chooses the lowest supplied `feePercentage` |
+| `fastest_settlement` | Chooses the lowest supplied `settlementMinutes` |
+| `custom_priority` | Follows `providerPriority` or credential priority |
+
+```json
+{
+  "routingStrategy": "custom_priority",
+  "providerPriority": ["paystack", "flutterwave"],
+  "providerCredentials": [
+    {
+      "provider": "paystack",
+      "apiKey": "paystack-secret",
+      "priority": 1
+    },
+    {
+      "provider": "flutterwave",
+      "apiKey": "flutterwave-secret",
+      "priority": 2
+    }
+  ]
+}
+```
+
+<Info>
+  Routing values such as success rate, fee percentage, and settlement time are provided by your application with the request. They are not calculated automatically from your project metrics.
+</Info>
+
+## Ledger-only operations
+
+Omit provider and routing fields to execute supported operations against the ledger without calling a payment provider.

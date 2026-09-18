@@ -1,0 +1,65 @@
+---
+title: "Python client"
+description: "Create a reusable OurPocket client with requests."
+---
+
+## Install the HTTP client
+
+```bash
+pip install requests
+```
+
+## Create the client
+
+```python
+import requests
+
+
+class OurPocketClient:
+    def __init__(self, base_url: str, api_key: str):
+        self.base_url = base_url.rstrip("/")
+        self.session = requests.Session()
+        self.session.headers.update({
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        })
+
+    def request(self, method: str, path: str, **kwargs):
+        response = self.session.request(
+            method,
+            f"{self.base_url}{path}",
+            timeout=30,
+            **kwargs,
+        )
+        body = response.json()
+
+        if not response.ok:
+            message = body.get("message", "OurPocket request failed")
+            if isinstance(message, list):
+                message = ", ".join(message)
+            raise RuntimeError(message)
+
+        return body["data"]
+
+    def create_wallet(self, user_id: str, currency: str = "NGN"):
+        return self.request("POST", "/wallets/create", json={
+            "userId": user_id,
+            "currency": currency,
+        })
+
+    def get_wallet(self, wallet_id: str):
+        return self.request("GET", f"/wallets/{wallet_id}")
+```
+
+## Use the client
+
+```python
+import os
+
+pocket = OurPocketClient(
+    os.environ["OURPOCKET_BASE_URL"],
+    os.environ["OURPOCKET_API_KEY"],
+)
+
+wallet = pocket.create_wallet("customer_8462", "NGN")
+```

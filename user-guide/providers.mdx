@@ -1,0 +1,90 @@
+---
+title: "Providers"
+description: "Review available provider adapters and connect Paystack or Flutterwave to a project."
+---
+
+Provider adapters connect OurPocket to external payment infrastructure. Provider configuration belongs to the project currently selected in the dashboard.
+
+## Available adapters
+
+The provider catalog distinguishes adapters you can configure now from integrations that are not yet available.
+
+<CardGroup cols={2}>
+  <Card title="Paystack" icon="check">
+    Active. You can open the adapter and provide its required configuration.
+  </Card>
+  <Card title="Flutterwave" icon="check">
+    Active. You can open the adapter and provide its required configuration.
+  </Card>
+</CardGroup>
+
+All other providers shown as **Coming soon** are catalog previews. You cannot connect or use those adapters yet.
+
+<Warning>
+  Do not design a production workflow around a **Coming soon** provider. Use Paystack or Flutterwave until another adapter is marked active in the dashboard.
+</Warning>
+
+## Connect an active provider
+
+<Steps>
+  <Step title="Select the project">
+    Open **Projects**, choose **Use Project** for the target project, and confirm the **Selected** badge.
+  </Step>
+  <Step title="Open Providers">
+    Navigate to **Providers** and locate either Paystack or Flutterwave in the catalog.
+  </Step>
+  <Step title="Start the connection">
+    Open the active adapter and select the available connection action.
+  </Step>
+  <Step title="Enter provider configuration">
+    Supply the credentials and other values requested by the adapter. Use credentials for the environment in which you intend to test or operate.
+  </Step>
+  <Step title="Save and verify">
+    Submit the configuration and confirm that the provider appears as connected for the selected project.
+  </Step>
+</Steps>
+
+<Note>
+  Provider credentials are separate from OurPocket project API keys. Provider forms configure an adapter; the **Wallets** and **Transactions** request consoles require you to paste a project API key when sending requests.
+</Note>
+
+## Work with multiple projects
+
+Connections do not automatically carry across projects. To configure the same provider for another project:
+
+<Steps>
+  <Step title="Switch the active project">
+    Open **Projects** and select the other project.
+  </Step>
+  <Step title="Return to Providers">
+    Reopen the provider catalog so it loads configuration for the newly selected project.
+  </Step>
+  <Step title="Configure the adapter">
+    Connect Paystack or Flutterwave using credentials appropriate for that project and environment.
+  </Step>
+</Steps>
+
+## Credential safety
+
+- Use test or sandbox provider credentials while developing.
+- Restrict production credentials to the project that needs them.
+- Never place provider secrets in client-side application code, screenshots, support messages, or source control.
+- Rotate credentials in the provider's system if you suspect exposure, then update the project connection.
+
+## Troubleshooting
+
+### The Connect action is unavailable
+
+Confirm that the catalog entry is Paystack or Flutterwave and is marked active. Entries labeled **Coming soon** cannot be configured.
+
+### The provider was connected to the wrong project
+
+Return to **Projects**, select the intended project, and reopen **Providers**. Configure the adapter in that project rather than relying on the previous browser selection.
+
+### The connection request fails
+
+Check every required field and verify the credentials directly with Paystack or Flutterwave. Make sure test credentials are used for test activity and live credentials are used only for the intended live setup.
+
+### The request console still asks for a key
+
+This is expected. A provider connection does not authenticate dashboard request consoles. Copy the correct project key from **API Keys** and paste it into the **Wallets** or **Transactions** console.

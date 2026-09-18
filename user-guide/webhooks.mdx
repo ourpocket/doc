@@ -1,0 +1,88 @@
+---
+title: "Webhook endpoints"
+description: "Create project webhook endpoint records and understand the current delivery limitations."
+---
+
+The **Webhooks** screen lets you create endpoint records for the selected project. Each new record subscribes only to the supported transaction outcome events.
+
+## Supported subscriptions
+
+New endpoint records subscribe to:
+
+- `transaction.success`
+- `transaction.failed`
+
+The dashboard does not currently offer additional event subscriptions.
+
+<Warning>
+  Outbound webhook delivery and request signing are not implemented. Creating an endpoint record does not cause OurPocket to send events to your application, and you must not build a production workflow that depends on webhook delivery or signature verification yet.
+</Warning>
+
+## Create an endpoint record
+
+<Steps>
+  <Step title="Select a project">
+    Open **Projects**, select **Use Project** for the target project, and confirm its **Selected** badge.
+  </Step>
+  <Step title="Open Webhooks">
+    Navigate to **Webhooks** to view endpoint records for the selected project.
+  </Step>
+  <Step title="Add an endpoint">
+    Select **Add Endpoint** and enter the URL requested by the form.
+  </Step>
+  <Step title="Save the record">
+    Submit the form, then confirm that the endpoint appears in the project's webhook list.
+  </Step>
+  <Step title="Review the subscriptions">
+    Verify that the record lists `transaction.success` and `transaction.failed`.
+  </Step>
+</Steps>
+
+<Note>
+  Saving the endpoint verifies configuration storage only. It does not test network reachability and does not send a test event.
+</Note>
+
+## Delete an endpoint record
+
+Delete an endpoint when you no longer want it stored in the project configuration.
+
+<Steps>
+  <Step title="Confirm the selected project">
+    Make sure the endpoint belongs to the project currently marked **Selected**.
+  </Step>
+  <Step title="Choose the endpoint">
+    Locate the endpoint record in **Webhooks** and use its delete action.
+  </Step>
+  <Step title="Confirm removal">
+    Verify that the record no longer appears in the project's endpoint list.
+  </Step>
+</Steps>
+
+## Plan for transaction updates
+
+Until outbound delivery is implemented, use an application-controlled strategy for tracking transaction outcomes. Persist transaction identifiers and references when you submit requests, and use available API request flows to check state where appropriate.
+
+Do not assume that:
+
+- A saved endpoint will receive HTTP requests.
+- A displayed or stored secret is used to sign outbound requests.
+- Your receiver can validate an OurPocket signature.
+- Endpoint creation provides delivery retries, logs, or delivery guarantees.
+
+## Troubleshooting
+
+### The endpoint receives no events
+
+This is expected in the current implementation because outbound webhook delivery is not available. Creating the record alone does not activate delivery.
+
+### I cannot select other event types
+
+Only `transaction.success` and `transaction.failed` are assigned to new endpoint records. Other subscriptions are not currently supported by the dashboard.
+
+### I cannot verify a webhook signature
+
+Request signing is not implemented. Do not infer a signing format or deploy signature-verification code based only on endpoint configuration fields.
+
+### The endpoint appears under the wrong project
+
+Return to **Projects**, select the intended project, and reopen **Webhooks**. Endpoint records follow the dashboard's local project context.

@@ -1,0 +1,64 @@
+---
+title: "Troubleshooting"
+description: "Diagnose common account, project, key, provider, wallet, and local setup problems."
+---
+
+## Dashboard redirects to Projects
+
+The selected project is missing or no longer belongs to the workspace.
+
+1. Open **Projects**.
+2. Select **Use Project** for an existing project or create a new project.
+3. Return to the intended dashboard page.
+
+## Dashboard redirects to workspace onboarding
+
+The authenticated user does not have a platform account. Complete the workspace form. If the account already exists, retry after confirming the API and JWT refer to the same user.
+
+## A project key is rejected
+
+Check that:
+
+- The key belongs to the intended project.
+- The key has not expired or been revoked.
+- The quota has not been exhausted.
+- The complete key value is used.
+- The header contains either a bearer key or `x-api-key`.
+
+## A provider cannot be connected
+
+Check that:
+
+- The catalog status is **Available**.
+- The catalog entry has an executable adapter.
+- Every required credential field is present.
+- The selected project is correct.
+
+## A wallet request fails before execution
+
+Validate the request against the endpoint DTO:
+
+- UUID fields contain valid UUIDs.
+- Amount is a numeric string.
+- Currency is present and consistent with the wallet.
+- Reference length meets endpoint requirements.
+- JSON payload fields are valid objects or arrays.
+
+## Provider operation succeeded but the API failed
+
+The provider call may have completed before a ledger failure. Do not immediately retry. Reconcile the provider reference, wallet balance, and external ledger state first.
+
+## Local API cannot reach PostgreSQL
+
+- Confirm PostgreSQL is running.
+- Check `DATABASE_URL` or individual database variables.
+- Confirm the database exists.
+- Run migrations.
+
+## Local API cannot reach the ledger
+
+The ledger is not included in Docker Compose. Start it separately and set `LEDGER_URL` to an address reachable from the API process or container.
+
+## Backend install or tests stop before running
+
+pnpm may block dependency build scripts. Review and approve only the required trusted packages, reinstall dependencies, and rerun the build or tests.

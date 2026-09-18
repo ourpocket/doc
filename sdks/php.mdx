@@ -1,0 +1,59 @@
+---
+title: "PHP client"
+description: "Call the OurPocket API with PHP and cURL."
+---
+
+## Create a request helper
+
+```php
+<?php
+
+function ourPocketRequest(string $method, string $path, ?array $payload = null): array
+{
+    $baseUrl = rtrim(getenv('OURPOCKET_BASE_URL'), '/');
+    $apiKey = getenv('OURPOCKET_API_KEY');
+    $curl = curl_init($baseUrl . $path);
+
+    curl_setopt_array($curl, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_CUSTOMREQUEST => $method,
+        CURLOPT_HTTPHEADER => [
+            'Authorization: Bearer ' . $apiKey,
+            'Content-Type: application/json',
+        ],
+        CURLOPT_TIMEOUT => 30,
+    ]);
+
+    if ($payload !== null) {
+        curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($payload, JSON_THROW_ON_ERROR));
+    }
+
+    $response = curl_exec($curl);
+    $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+    curl_close($curl);
+
+    $body = json_decode($response, true, flags: JSON_THROW_ON_ERROR);
+
+    if ($status < 200 || $status >= 300) {
+        $message = $body['message'] ?? 'OurPocket request failed';
+        throw new RuntimeException(is_array($message) ? implode(', ', $message) : $message);
+    }
+
+    return $body['data'];
+}
+```
+
+## Create a wallet
+
+```php
+$wallet = ourPocketRequest('POST', '/wallets/create', [
+    'userId' => 'customer_8462',
+    'currency' => 'NGN',
+]);
+```
+
+## Retrieve a wallet
+
+```php
+$wallet = ourPocketRequest('GET', '/wallets/' . urlencode($walletId));
+```

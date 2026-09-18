@@ -1,0 +1,48 @@
+---
+title: "Errors"
+description: "Handle validation, authentication, authorization, conflict, and dependency failures."
+---
+
+OurPocket uses standard NestJS HTTP exceptions. Error responses are not wrapped in the success envelope.
+
+## Status codes
+
+| Status | Meaning | Common causes |
+| --- | --- | --- |
+| `400` | Bad request | Validation failure, missing fields, malformed payload |
+| `401` | Unauthorized | Invalid credentials, expired key, exhausted project-key quota, some currency or provider-credential errors |
+| `403` | Forbidden | Platform administrator permission required |
+| `404` | Not found | Missing owned project, wallet, transaction, provider, or webhook |
+| `409` | Conflict | Duplicate account, project resource, API-key scope, or transaction reference |
+| `500` | Internal server error | Unexpected provider, ledger, persistence, or application failure |
+
+## Error body
+
+A typical NestJS error resembles:
+
+```json
+{
+  "statusCode": 400,
+  "message": ["amount must be a number string"],
+  "error": "Bad Request"
+}
+```
+
+The `message` can be a string or an array. Clients should support both forms.
+
+## Retry guidance
+
+Retry only when the failure is transient and the operation is safe to repeat.
+
+| Failure | Recommended action |
+| --- | --- |
+| Validation error | Correct the request; do not retry unchanged |
+| Invalid key | Replace or rotate the credential |
+| Quota exhausted | Stop requests and review key quota |
+| Duplicate transaction reference | Retrieve the existing transaction by its ID if available; do not submit a new financial operation blindly |
+| Provider timeout | Reconcile with the provider and ledger before retrying a non-idempotent operation |
+| Ledger failure after provider success | Treat as ambiguous and escalate to reconciliation |
+
+<Warning>
+  The provider retry engine retries all thrown provider errors up to three attempts. Your client should not add aggressive retries around non-idempotent provider-backed operations.
+</Warning>

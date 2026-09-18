@@ -1,0 +1,48 @@
+---
+title: "Credit a wallet"
+description: "Submit and track a durable wallet credit."
+---
+
+Use the Transactions API when you want OurPocket to store operation status.
+
+## Submit the credit
+
+```bash
+curl --request POST "$OURPOCKET_BASE_URL/transactions" \
+  --header "Authorization: Bearer $OURPOCKET_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "type": "credit",
+    "walletId": "WALLET_ID",
+    "amount": "5000",
+    "currency": "NGN",
+    "reference": "deposit_1284",
+    "metadata": {
+      "customerId": "customer_8462"
+    }
+  }'
+```
+
+## Store the transaction ID
+
+Store the returned transaction ID with your reference. This gives your system two reconciliation keys:
+
+- Your application reference
+- The OurPocket transaction ID
+
+## Retrieve status
+
+```bash
+curl "$OURPOCKET_BASE_URL/transactions/TRANSACTION_ID" \
+  --header "Authorization: Bearer $OURPOCKET_API_KEY"
+```
+
+Handle all three statuses:
+
+- `pending`: wait before treating the balance update as final.
+- `success`: complete the associated application workflow.
+- `failed`: store the failure and decide whether operator review or a new reference is required.
+
+<Warning>
+  Do not submit the same reference again after an ambiguous provider or ledger failure without reconciling the original operation.
+</Warning>
