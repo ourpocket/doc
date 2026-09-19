@@ -1,14 +1,10 @@
 ---
 title: "Transactions and inspection"
-description: "Understand normalized resources, events, and API logs."
+description: "Inspect Sandbox resources and request a fresh Production provider overview."
 ---
 
-A Payment is a hosted-checkout operation. A Refund reverses some or all of a completed Payment. A Sandbox Transfer moves simulated fiat funds between wallets. `GET /v1/financial-transactions` lists these normalized financial records together; it does not initiate money movement.
+Sandbox Payments, refunds, wallets, and transfers are simulated resources and can be listed in the dashboard or through the financial APIs.
 
-Each resource includes a UUID `id`, `projectId`, `environment`, `kind`, `status`, `amount` where relevant, `currency` where relevant, `provider`, `providerReference`, `parentId`, `details`, `requestId`, and timestamps. Amounts are integer minor-unit strings. Production chain wallets have `currency: null` and `details.balance: null`.
+Production provider transactions are not an OurPocket transaction history. Select a connected provider in the Production overview to fetch a live, uncached summary of safe operational fields: references, statuses, amounts, currencies, timestamps, bank names, and masked account numbers. The response is shown for the current request only and is never written to resources, logs, events, queues, or snapshots.
 
-Statuses are `pending`, `unknown`, `completed`, and `failed`. `pending` means more provider or simulation work is needed. `unknown` means the outcome is uncertain; it is never permission to repeat a financial write automatically. The `details.routingDecision` on a routed payment records the selected provider, candidates, health snapshot, policy, and reason.
-
-`GET /v1/events` lists normalized lifecycle events. `GET /v1/api-logs` lists redacted application and provider operation logs. Both are project/environment scoped and return up to the latest 100 entries. Logs expire after seven days; financial resources and delivery metadata are retained. Use the shared request ID to follow an operation into its event and webhook delivery.
-
-In the dashboard, **Payments** shows checkout links and refunds; **Transactions** is a read-only history; **API Logs** opens a detail panel for inspection. The older `/v1/transactions` and `/v1/wallets/*` routes are compatibility APIs with different semantics. New integrations should use the normalized endpoints in [the API reference](/reference/endpoints).
+The overview keeps local API-usage metrics separate from provider activity. It can report section-level unavailability when a provider product is not enabled or a provider call fails.

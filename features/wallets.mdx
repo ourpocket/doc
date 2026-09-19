@@ -1,28 +1,10 @@
 ---
-title: "Wallets and transfers"
-description: "Simulate fiat balances in Sandbox or create chain wallets in Production."
+title: "Wallets and virtual accounts"
+description: "Use simulated Sandbox wallets or provider-owned receiving accounts."
 ---
 
-Wallets have two distinct execution modes. Both use `POST /v1/wallets` with a project key and `Idempotency-Key`.
+Sandbox fiat wallets are test-only, PostgreSQL-backed balances. Funding, debit, and transfers require an `Idempotency-Key` and never call an external provider.
 
-| | Sandbox fiat wallet | Production chain wallet |
-| --- | --- | --- |
-| Create body | `{ "currency": "NGN" }` | `{ "provider": "turnkey", "chain": "ethereum" }` |
-| `details.balance` | Integer minor-unit string, initially `"0"` | `null` |
-| `currency` | Fiat currency | `null` |
-| `details.address` | None | Provider chain address |
-| Funding, debit, transfer | Simulated in PostgreSQL | Unavailable |
+Production has no OurPocket wallet or custody balance. “Wallets” in provider operations means Paystack dedicated accounts or Flutterwave virtual accounts owned by your connected provider account. Create and inspect them through `/v1/providers/paystack/virtual-accounts/*` or `/v1/providers/flutterwave/virtual-accounts/*`. Include transient contact data only where the provider requires it.
 
-You can optionally associate either wallet with an existing `customer` UUID in the same environment. Production requires a connected Turnkey or Privy account and supports `ethereum` or `solana`. Wallet creation returns a normalized resource and provider reference. An uncertain provider outcome can remain `unknown`; do not start a second creation with a new idempotency key to guess the result.
-
-## Simulate money movement
-
-Sandbox operations use positive integer minor-unit strings and a matching currency:
-
-- `POST /v1/sandbox/wallets/{id}/fund` adds test funds.
-- `POST /v1/sandbox/wallets/{id}/debit` removes test funds if available.
-- `POST /v1/sandbox/transfers` moves funds between Sandbox wallets with `fromWallet`, `toWallet`, `amount`, and `currency`.
-
-Each creation requires `Idempotency-Key`. Balances update atomically. Insufficient funds fails the operation. Pending transfers reserve the source amount; use the Sandbox completion endpoint to resolve them once. These simulated values are never sent to a payment provider or the old external ledger service.
-
-Use `GET /v1/wallets` or `GET /v1/wallets/{id}` to inspect wallets. [The wallet API guide](/developer-guide/wallet-api) has executable requests.
+Account details are returned directly and discarded. Store the account reference and any details your business needs in your own system.

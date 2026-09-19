@@ -12,31 +12,60 @@
     "pages": [
       {
         "group": "Get started",
-        "pages": ["index", "quickstart", "user-guide/account-and-projects", "concepts/environments", "concepts/authentication", "developer-guide/api-keys"]
+        "pages": [
+          "index",
+          "quickstart",
+          "user-guide/account-and-projects",
+          "concepts/environments",
+          "concepts/authentication",
+          "developer-guide/api-keys"
+        ]
       },
       {
         "group": "Providers",
-        "pages": ["user-guide/providers"]
+        "pages": [
+          "user-guide/providers",
+          "features/provider-activity"
+        ]
       },
       {
         "group": "Payments and wallets",
-        "pages": ["features/payments", "features/wallets", "features/transactions", "developer-guide/wallet-api"]
+        "pages": [
+          "features/payments",
+          "features/wallets",
+          "features/transactions",
+          "developer-guide/wallet-api"
+        ]
       },
       {
         "group": "Events and webhooks",
-        "pages": ["user-guide/webhooks", "developer-guide/webhook-events"]
+        "pages": [
+          "user-guide/webhooks",
+          "developer-guide/webhook-events"
+        ]
       },
       {
         "group": "Routing and operations",
-        "pages": ["features/routing", "developer-guide/provider-routing", "guides/migrate-to-live", "operations/current-limitations"]
+        "pages": [
+          "features/routing",
+          "developer-guide/provider-routing",
+          "guides/migrate-to-live",
+          "operations/current-limitations"
+        ]
       },
       {
         "group": "Developer tools",
-        "pages": ["developer-guide/idempotency", "developer-guide/api-logs"]
+        "pages": [
+          "developer-guide/idempotency",
+          "developer-guide/api-logs"
+        ]
       },
       {
         "group": "SDK",
-        "pages": ["sdks/overview", "sdks/typescript"]
+        "pages": [
+          "sdks/overview",
+          "sdks/typescript"
+        ]
       },
       {
         "group": "API reference",
@@ -48,7 +77,9 @@
       },
       {
         "group": "Help",
-        "pages": ["operations/troubleshooting"]
+        "pages": [
+          "operations/troubleshooting"
+        ]
       }
     ],
     "global": {
@@ -83,7 +114,16 @@
     }
   },
   "contextual": {
-    "options": ["copy", "view", "chatgpt", "claude", "perplexity", "mcp", "cursor", "vscode"]
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity",
+      "mcp",
+      "cursor",
+      "vscode"
+    ]
   },
   "footer": {
     "socials": {

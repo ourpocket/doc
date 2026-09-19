@@ -1,10 +1,8 @@
 ---
 title: "Troubleshooting"
-description: "Inspect failed, pending, and unknown financial operations."
+description: "Resolve connection, capability, and provider-operation issues."
 ---
 
-First confirm the project and environment. An `op_test_sk_` key cannot read Production resources. Check the `X-Request-Id` response header and the resource's `requestId`, then inspect **API Logs**, **Events**, and **Webhooks** in the matching dashboard environment.
+For an unavailable capability, confirm that the provider product is enabled for the connected account, then revalidate the connection. For a timeout or unclear result, query or verify the caller-owned provider reference directly with the selected provider. Do not issue a second write automatically.
 
-For a `400` response, validate the body and `Idempotency-Key`. Production checkout needs a connected payment provider; with multiple connections, supply an explicit provider or save a routing policy. Flutterwave checkout requires an HTTPS `callbackUrl`. Production chain wallet creation needs connected Turnkey or Privy credentials, a `provider`, and a `chain` rather than fiat `currency`.
-
-For a `pending` payment, complete hosted checkout and verify the original provider. For `unknown`, reuse the original idempotency key and body to fetch the same operation. Verify or run Production reconciliation; never blindly issue a new write. A failed outbound webhook can be inspected in its delivery history and replayed after the endpoint is fixed. See [errors](/reference/errors), [routing](/features/routing), and [webhooks](/user-guide/webhooks).
+Use the Production overview for a fresh operational summary. It can show section-level failures without retaining provider data.

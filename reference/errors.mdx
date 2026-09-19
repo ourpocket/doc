@@ -1,18 +1,14 @@
 ---
-title: "Errors and uncertain outcomes"
-description: "Handle validation, conflicts, provider uncertainty, and SDK errors."
+title: "Errors"
+description: "Understand validation, capability, and provider-operation failures."
 ---
 
-The backend uses HTTP status codes and Nest error responses. It does not expose a single stable enum of provider-specific error codes. Read the HTTP status, message, and `X-Request-Id`; do not branch on an invented code string.
-
-| Status | Typical cause | What to do |
+| Status | Code or condition | What to do |
 | --- | --- | --- |
-| `400` | Invalid payload, missing idempotency key, unavailable provider capability, ambiguous provider choice, or unsupported environment operation | Correct the request or select an eligible connection |
-| `401` | Invalid, revoked, expired, or exhausted key | Use an active key for the intended project and environment |
-| `404` | Resource or connection not found in this scope | Check the UUID, project, and environment |
-| `409` | Idempotency key reused with a different body, amount/reference mismatch, or unsafe refund state | Inspect the original operation before changing anything |
-| `502` | Malformed provider response or a wallet provider request error | Inspect the operation and logs; do not blindly repeat a financial write |
+| `400` | Invalid input or Production connection missing | Correct the request or validate the selected connection. |
+| `401` | Missing, invalid, or revoked project key | Use an active project key. |
+| `409` | Sandbox idempotency conflict | Reuse the original body or choose a new key for a new simulated operation. |
+| `415` | `capability_unavailable` | Enable the product in the connected provider account or select a supported operation. |
+| `502` | Provider response was malformed or unavailable | Query or verify the caller-owned provider reference. Do not repeat the write automatically. |
 
-A transport timeout or uncertain provider response can leave the **resource** with `status: "unknown"` even when the create request itself returned successfully. This is deliberate: the provider may have accepted the write. Reuse the same idempotency key and body to retrieve it. For Production payments and refunds, verify or run reconciliation against the original provider; a later terminal state must not be overwritten by an old webhook.
-
-The TypeScript SDK throws `OurPocketError` with `status` and `requestId`. A client-side network failure has `status: 0`. Keep the idempotency key and investigate; the SDK never automatically retries writes.
+Provider calls return no stored OurPocket resource. Preserve provider references and returned results in your application for support and reconciliation.

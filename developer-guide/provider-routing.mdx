@@ -1,26 +1,8 @@
 ---
-title: "Configure routing"
-description: "Save payment selection rules and inspect a routing decision."
+title: "Selecting a provider"
+description: "Choose an explicit active provider for each live operation."
 ---
 
-Use a Production project key for the normalized policy API. The dashboard also exposes `GET` and `POST /v1/projects/{projectId}/financial/routing-policy` with a user JWT and `X-Environment: production`.
+Live financial operations require a selected, active, validated provider connection. OurPocket does not automatically fail over or retry a money-moving write.
 
-```bash
-curl -X POST "$OURPOCKET_BASE_URL/routing-policy" \
-  -H "Authorization: Bearer $OURPOCKET_API_KEY" \
-  -H 'Content-Type: application/json' \
-  -d '{"strategy":"custom_priority","providerPriority":["paystack","flutterwave"],"requireHealthy":true,"safeFailover":false}'
-```
-
-Strategies are `best_success_rate`, `lowest_fees`, `fastest_response`, and `custom_priority`. `lowest_fees` uses the operator's fee estimate, not a provider invoice. Mark a provider down and set a fee estimate with:
-
-```bash
-curl -X POST "$OURPOCKET_BASE_URL/provider-health/flutterwave" \
-  -H "Authorization: Bearer $OURPOCKET_API_KEY" \
-  -H 'Content-Type: application/json' \
-  -d '{"status":"down","estimatedFeeBps":150}'
-```
-
-Create a payment without a `provider` only after saving a policy or connecting a sole eligible provider. The resulting resource has `provider` and `details.routingDecision`. Explicit request selection remains available and requires a connected provider; it is not silently changed by the policy.
-
-If a provider write times out, keep the returned operation ID and idempotency key. Read the operation or call `POST /v1/payments/{id}/verify`. The reconciliation run can inspect pending and unknown Production operations without repeating the write. See [payment statuses](/features/payments).
+If a provider request times out, inspect or verify the caller-owned provider reference with that same provider. Preserve the result in your own system. A provider product that is not enabled returns `capability_unavailable`.

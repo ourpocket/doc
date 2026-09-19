@@ -1,29 +1,8 @@
 ---
-title: "Events and delivery"
-description: "Understand event payloads, filters, test events, and replay."
+title: "Provider webhook events"
+description: "Verify provider events in your own webhook endpoint."
 ---
 
-`GET /v1/events` with a project key lists the latest 100 events for that project's environment. A typical normalized event has this shape:
+Create webhook endpoints in the Paystack, Flutterwave, or Mono dashboard. Verify signatures using each provider’s documented raw-body procedure and secrets managed by your application.
 
-```json
-{
-  "id": "event-uuid",
-  "type": "payment.completed",
-  "environment": "sandbox",
-  "requestId": "request-uuid",
-  "createdAt": "2026-09-19T12:00:00.000Z",
-  "data": {
-    "id": "payment-uuid",
-    "kind": "payment",
-    "amount": "50000",
-    "currency": "NGN",
-    "status": "completed",
-    "provider": "paystack",
-    "providerReference": null
-  }
-}
-```
-
-UUID placeholders above stand for real UUID values. The `data` object is the normalized resource snapshot at emission. Common event families include `customer.created`, `payment.created`, `payment.completed`, `payment.failed`, `refund.created`, `refund.completed`, `transfer.created`, `transfer.completed`, and `wallet.created`. `pending` and `unknown` events occur where supported. Select event names in the endpoint filter; the backend rejects unsupported filters.
-
-Use **Webhooks** in the dashboard to send a test event, inspect each attempt's response, and replay an existing delivery. Replay creates a new delivery for the same event. Handle duplicates by event ID. The [webhook guide](/user-guide/webhooks) shows signature verification and retry behavior.
+OurPocket does not receive, relay, retain, retry, or replay provider webhooks. Store the provider reference and event outcome in your own system, then verify against the provider when needed.

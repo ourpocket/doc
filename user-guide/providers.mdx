@@ -1,26 +1,18 @@
 ---
 title: "Supported providers"
-description: "Connect customer-owned Production accounts and check implemented capabilities."
+description: "Connect a customer-owned provider account and use its live capabilities."
 ---
 
-Provider connections belong to a project and environment. Sandbox runs simulated operations without any provider account. Production reads encrypted connection credentials; operation requests do not accept provider secrets.
+Provider connections belong to a project and environment. Sandbox is simulated and never calls external providers. Production requires an active, validated connection and an `op_live_sk_` key.
 
-| Provider | Implemented Production capability | Required connection fields |
-| --- | --- | --- |
-| Paystack | Hosted checkout, verification, full/partial refunds | `apiKey` |
-| Flutterwave | Hosted checkout, verification, full/partial refunds | `apiKey`, `webhookSecret` |
-| Turnkey | Ethereum or Solana chain wallet creation | `organizationId`, `apiPublicKey`, `apiPrivateKey` |
-| Privy | Ethereum or Solana chain wallet creation | `appId`, `appSecret` |
+| Provider | Supported operations |
+| --- | --- |
+| Paystack | Hosted checkout, verification, refunds, account resolution, recipients, payouts, dedicated accounts, and live overview |
+| Flutterwave | Standard checkout, verification, refunds, account resolution, beneficiaries, payouts, virtual accounts, and live overview |
+| Mono | DirectPay checkout and verification; connection and capability overview only |
 
-Paga, Fincra, Mono, and other catalog entries are not executable financial adapters. Turnkey and Privy do not provide fiat funding or balance transfers through OurPocket. `GET /v1/providers` with a project key returns normalized capability flags; the management catalog is at `GET /v1/provider-catalog` with a user JWT.
+Connect in **Providers** while Production is selected. Credentials are encrypted and masked after saving. Validation checks credentials and accessible products without moving money. Requests never accept provider credentials.
 
-## Connect a provider
+Use `/v1/providers/{provider}/…` with a project key for runtime operations, or `/v1/projects/{projectId}/providers/{provider}/…` with a dashboard JWT for the live overview. A missing product returns `capability_unavailable`; OurPocket never reroutes a write to another provider.
 
-1. In the dashboard select your project and **Production**, then open **Providers**.
-2. Choose an active provider, enter the required account credentials, and save the connection. The dashboard uses `POST /v1/projects/{projectId}/providers/connect` with a catalog `providerId`, `config`, and `X-Environment: production`.
-3. Confirm it appears in Production. Connection data is encrypted at rest and secrets are masked in list responses. Saving fields validates their presence, not whether your provider account will accept a live operation.
-4. Test a provider-backed operation and inspect the normalized resource and provider response status. Use your provider's own account tools for its separate setup.
-
-Multiple connected payment providers require an explicit `provider` on the payment or a [saved routing policy](/features/routing). There is no automatic financial-write retry. A selected provider's outage can result in an `unknown` operation that needs verification.
-
-The legacy `POST /v1/projects/{projectId}/providers` route only supports Paystack and Flutterwave configuration. Use the catalog connection route for wallet providers.
+The overview is a fresh, no-cache response. It includes only operational fields and masks account numbers. It retains nothing from the provider response. Keep all provider identifiers and results in your application.

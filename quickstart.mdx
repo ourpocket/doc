@@ -1,46 +1,30 @@
 ---
 title: "Quickstart"
-description: "Create a project, run a sandbox payment, and inspect its event."
+description: "Create a project and run a simulated payment without provider credentials."
 ---
 
-You can complete this flow without Paystack, Flutterwave, Turnkey, or Privy credentials. Sandbox operations are simulated and move no real money.
+Create a project in the dashboard and save the `op_test_sk_` Sandbox key returned once. Sandbox is isolated from providers and moves no real money.
 
 <Steps>
-  <Step title="Create an account and project">
-    Register in the dashboard, verify your email, sign in, and create a project. Project creation returns an `op_test_sk_` Sandbox key **once**. Save it on your server. The API also accepts `POST /v1/projects` with your user JWT and `{ "name": "My app" }`; its response includes `data.id` and `data.sandboxKey`.
-  </Step>
-  <Step title="Create a customer">
-    Set `OURPOCKET_API_KEY` to that Sandbox key and `OURPOCKET_BASE_URL` to your API's `/v1` base URL. Create a customer with an idempotency key:
-
-    ```bash
-    curl -X POST "$OURPOCKET_BASE_URL/customers" \
-      -H "Authorization: Bearer $OURPOCKET_API_KEY" \
-      -H 'Content-Type: application/json' \
-      -H 'Idempotency-Key: quickstart-customer-1' \
-      -d '{"email":"developer@example.test"}'
-    ```
-
-    Copy `data.id` from the response into `CUSTOMER_ID`.
+  <Step title="Create a project">
+    Register, create a project, and save its Sandbox key on your server. You can also call `POST /v1/projects` with your user JWT; the response includes `data.id` and `data.sandboxKey`.
   </Step>
   <Step title="Simulate a payment">
-    Amounts are positive integer minor-unit **strings**. For NGN, `"50000"` means ₦500.
+    Amounts are positive integer minor-unit strings. For NGN, `"50000"` means ₦500.
 
     ```bash
     curl -X POST "$OURPOCKET_BASE_URL/payments" \
       -H "Authorization: Bearer $OURPOCKET_API_KEY" \
       -H 'Content-Type: application/json' \
       -H 'Idempotency-Key: quickstart-payment-1' \
-      -d "{\"customer\":\"$CUSTOMER_ID\",\"amount\":\"50000\",\"currency\":\"NGN\"}"
+      -d '{"amount":"50000","currency":"NGN","scenario":"success"}'
     ```
 
-    The default Sandbox scenario returns a completed `payment` in `data`. Use the same key and identical request body to retrieve the same operation. A changed body with that key returns `409`.
+    Sandbox returns a simulated resource. Repeat the same request with the same idempotency key to recover it.
   </Step>
-  <Step title="Inspect the result">
-    Open **Payments**, **Transactions**, and **API Logs** in the dashboard, or call `GET /v1/payments`, `GET /v1/events`, and `GET /v1/api-logs` with the Sandbox key. The payment, event, and log share a request ID.
-  </Step>
-  <Step title="Receive a test event">
-    Add a public HTTPS endpoint under **Webhooks**. Save the `whsec_` signing secret when the endpoint is created. Send a test event in the dashboard, verify `OurPocket-Signature` against the raw request body, then inspect its delivery history. Local/private addresses are rejected. See [webhook verification](/user-guide/webhooks).
+  <Step title="Move to a live provider">
+    Connect and validate a Production Paystack, Flutterwave, or Mono account. A live checkout accepts a transient `contact`, a caller-owned `reference`, and a callback URL where required. OurPocket returns the hosted URL and discards the provider result after responding.
   </Step>
 </Steps>
 
-The TypeScript SDK is a [private standalone source package](/sdks/typescript), not a published npm package. Its `examples/quickstart.ts` and `examples/webhook-receiver.ts` live in `packages/typescript` outside the frontend repository. To use real money, follow [going live](/guides/migrate-to-live).
+Use [provider operations](/user-guide/providers) for production collection, payouts, virtual accounts, and the live provider overview.

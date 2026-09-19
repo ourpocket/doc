@@ -1,12 +1,12 @@
 ---
 title: "Resource model"
-description: "Understand customers, operations, provider references, and events."
+description: "Understand the boundary between simulated Sandbox data and live provider operations."
 ---
 
-A **Project** represents your application. An **Environment** is its isolated Sandbox or Production context. A **Provider** is an external service; an **Integration** is that project's connection to a provider.
+A **Project** has separate Sandbox and Production environments. A **Provider connection** contains encrypted credentials for the project’s own Paystack, Flutterwave, or Mono account.
 
-A **Customer** is a normalized end-user record. A **Payment** is a simulated charge or hosted checkout. A **Refund** belongs to a payment. A **Wallet** is a Sandbox fiat balance or a Production chain address. A **Transfer** is simulated movement between Sandbox wallets. **Transactions** are the read-only combined list of payments, refunds, and transfers.
+Sandbox has simulated payments, refunds, fiat wallets, balances, and transfers. Those resources are project and environment scoped and can be inspected through the Sandbox APIs.
 
-Every financial resource has a UUID, project/environment, kind, status, request ID, timestamps, optional amount/currency, optional provider and provider reference, and operation-specific `details`. `pending` and `unknown` are not settled. Production wallets have no fiat balance. A routed payment stores its provider decision in `details.routingDecision`.
+Production is a transparent provider layer. Checkout, verification, refunds, payouts, beneficiaries, dedicated or virtual accounts, and provider activity are requested from the connected provider and returned to the caller. OurPocket does not retain the provider response, provider customer data, transaction data, balance, account data, webhook payload, or an activity snapshot.
 
-An **Event** records a state change; a **Webhook delivery** is an attempt to send that event to your endpoint. Events and deliveries have separate IDs. Delivery replay creates a new delivery for the same event. Use [transactions and inspection](/features/transactions) and [webhooks](/user-guide/webhooks) to trace an operation.
+Pass a transient `contact` only when the provider needs it. Keep provider references and returned results in your own system for later verification, reconciliation, and support. Provider webhooks are configured directly with each provider.
