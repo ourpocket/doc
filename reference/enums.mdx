@@ -1,64 +1,17 @@
 ---
-title: "Enums and statuses"
-description: "Reference the stable values used in requests and responses."
+title: "Financial values"
+description: "Use the statuses, scenarios, providers, and environment names returned by the API."
 ---
 
-## Project API-key scope
-
-| Value | Meaning |
+| Field | Implemented values |
 | --- | --- |
-| `test` | Development or test credential label |
-| `live` | Production credential label |
+| Environment | `sandbox`, `production` |
+| Financial resource kind | `customer`, `payment`, `refund`, `wallet`, `transfer` |
+| Operation status | `pending`, `unknown`, `completed`, `failed` |
+| Payment provider | `paystack`, `flutterwave` |
+| Production wallet provider | `turnkey`, `privy` |
+| Production wallet chain | `ethereum`, `solana` |
+| Sandbox scenario | `success`, `failure`, `pending`, `insufficient_funds`, `timeout`, `provider_outage` |
+| Routing strategy | `best_success_rate`, `lowest_fees`, `fastest_response`, `custom_priority` |
 
-## Transaction type
-
-- `credit`
-- `debit`
-- `transfer`
-
-## Transaction status
-
-- `pending`
-- `success`
-- `failed`
-
-## Routing strategy
-
-- `best_success_rate`
-- `lowest_fees`
-- `fastest_settlement`
-- `custom_priority`
-
-## Provider type
-
-The runtime routing engine currently executes:
-
-- `paystack`
-- `flutterwave`
-
-Other provider enum values or service implementations should not be assumed executable through the routing engine.
-
-## Provider catalog status
-
-- `draft`
-- `coming_soon`
-- `active`
-- `maintenance`
-- `retired`
-
-## Provider capability
-
-- `wallet_operations`
-- `payment_collection`
-- `bank_data`
-- `identity_verification`
-
-## Webhook event names
-
-- `transaction.success`
-- `transaction.failed`
-- `wallet.created`
-- `wallet.credited`
-- `wallet.debited`
-- `transfer.success`
-- `transfer.failed`
+Provider catalog entries can exist without executable capability. Read `GET /v1/providers` and [supported providers](/user-guide/providers) rather than assuming every catalog entry implements these values.

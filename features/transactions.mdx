@@ -1,55 +1,14 @@
 ---
-title: "Transactions"
-description: "Submit durable credit, debit, and transfer operations with stored status."
+title: "Transactions and inspection"
+description: "Understand normalized resources, events, and API logs."
 ---
 
-The Transactions API stores an OurPocket transaction record before executing the requested financial operation. Use it when your application needs a transaction ID and durable status.
+A Payment is a hosted-checkout operation. A Refund reverses some or all of a completed Payment. A Sandbox Transfer moves simulated fiat funds between wallets. `GET /v1/financial-transactions` lists these normalized financial records together; it does not initiate money movement.
 
-## Transaction types
+Each resource includes a UUID `id`, `projectId`, `environment`, `kind`, `status`, `amount` where relevant, `currency` where relevant, `provider`, `providerReference`, `parentId`, `details`, `requestId`, and timestamps. Amounts are integer minor-unit strings. Production chain wallets have `currency: null` and `details.balance: null`.
 
-| Type | Required wallet fields |
-| --- | --- |
-| `credit` | `walletId` |
-| `debit` | `walletId` |
-| `transfer` | `fromWalletId`, `toWalletId` |
+Statuses are `pending`, `unknown`, `completed`, and `failed`. `pending` means more provider or simulation work is needed. `unknown` means the outcome is uncertain; it is never permission to repeat a financial write automatically. The `details.routingDecision` on a routed payment records the selected provider, candidates, health snapshot, policy, and reason.
 
-All transaction types require `amount`, `currency`, and `reference`.
+`GET /v1/events` lists normalized lifecycle events. `GET /v1/api-logs` lists redacted application and provider operation logs. Both are project/environment scoped and return up to the latest 100 entries. Logs expire after seven days; financial resources and delivery metadata are retained. Use the shared request ID to follow an operation into its event and webhook delivery.
 
-## Submit a transaction
-
-```json
-{
-  "type": "credit",
-  "walletId": "wallet_id",
-  "amount": "5000",
-  "currency": "NGN",
-  "reference": "deposit_1284"
-}
-```
-
-OurPocket creates the record as `pending`, executes the operation, and then updates it to `success` or `failed`.
-
-## Retrieve a transaction
-
-Use `GET /v1/transactions/{transactionId}` with the same project API key.
-
-## References
-
-References are unique within a project. Create them in your own system and reuse the same value across your order, payment, and reconciliation records.
-
-<Warning>
-  Submitting a duplicate reference returns a conflict. It does not replay the previous response automatically.
-</Warning>
-
-## Metadata
-
-Use `metadata` for identifiers your application needs during reconciliation.
-
-```json
-{
-  "metadata": {
-    "orderId": "order_1284",
-    "customerId": "customer_8462"
-  }
-}
-```
+In the dashboard, **Payments** shows checkout links and refunds; **Transactions** is a read-only history; **API Logs** opens a detail panel for inspection. The older `/v1/transactions` and `/v1/wallets/*` routes are compatibility APIs with different semantics. New integrations should use the normalized endpoints in [the API reference](/reference/endpoints).

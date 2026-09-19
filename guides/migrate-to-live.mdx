@@ -1,29 +1,16 @@
 ---
-title: "Move from test to live"
-description: "Prepare credentials and integrations for intended production traffic."
+title: "Go live"
+description: "Move a working Sandbox integration to connected Production providers."
 ---
 
-<Steps>
-  <Step title="Complete test workflows">
-    Test wallet creation, credits, debits, transfers, failure handling, and transaction reconciliation with a project test key.
-  </Step>
-  <Step title="Review provider credentials">
-    Replace sandbox provider credentials with credentials intended for the live provider environment.
-  </Step>
-  <Step title="Store the live key">
-    Keep the live project key in a production secret manager. Never copy it into frontend code or source control.
-  </Step>
-  <Step title="Change application configuration">
-    Update your server environment to use the live project key. Keep the API base URL aligned with your deployed OurPocket environment.
-  </Step>
-  <Step title="Run a controlled operation">
-    Start with a low-risk wallet or transaction and verify the provider result, ledger balance, and stored transaction status.
-  </Step>
-  <Step title="Enable monitoring">
-    Track authentication errors, quota usage, provider failures, ledger failures, duplicate references, and unresolved pending transactions.
-  </Step>
-</Steps>
+Keep the same normalized customer, payment, refund, event, and wallet API concepts, but use a Production key and real connected providers. Sandbox data does not migrate into Production.
 
-<Warning>
-  A live key is a credential label and project scope. It does not automatically switch provider credentials from sandbox to production.
-</Warning>
+1. Complete a Sandbox flow, including failure, pending, and timeout scenarios. Save and reuse idempotency keys for retried client requests.
+2. In your project select **Production**. Connect your own Paystack or Flutterwave account for payments, and Turnkey or Privy if you need chain wallet creation. Store connection credentials through **Providers**; do not send them in operation bodies.
+3. Create an `op_live_sk_` key under **API keys** and store it only on your server. The key determines Production automatically. Create Production customers; Sandbox customer IDs are not shared.
+4. Register a public HTTPS webhook endpoint in Production, save its one-time `whsec_` secret, verify the raw-body HMAC and timestamp, and deduplicate by event ID. Send a test event and inspect the delivery history.
+5. With two connected payment providers, select one explicitly or save a routing policy. Set fee estimates and operator health where relevant. Check the stored routing decision on a payment.
+6. Create a hosted checkout with your live key. Flutterwave requires an HTTPS `callbackUrl`. Redirect to `details.checkoutUrl`, then verify the payment against its original provider. Do not treat initialization as settlement.
+7. Monitor **Payments**, **Transactions**, **API Logs**, **Webhooks**, and **Routing**. Verify pending or unknown Production operations or run reconciliation; never start another financial write just because the provider response was uncertain.
+
+Production rejects simulated scenarios, fiat wallet funding, debits, and internal transfers. Turnkey and Privy creation returns a chain address without a fiat balance. The backend must have a stable provider-credential encryption secret, migrations applied, and a Redis webhook worker configured before receiving live traffic.

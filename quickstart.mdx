@@ -1,107 +1,46 @@
 ---
 title: "Quickstart"
-description: "Onboard a workspace, prepare a project, and send a first request from the dashboard."
+description: "Create a project, run a sandbox payment, and inspect its event."
 ---
 
-This guide takes you from your first login to a test request through the OurPocket dashboard.
-
-## What you will do
-
-<CardGroup cols={3}>
-  <Card title="Set up your workspace" icon="building">
-    Complete the onboarding flow that appears after login.
-  </Card>
-
-  <Card title="Prepare a project" icon="folder">
-    Select a project, open its API keys, and configure an active provider.
-  </Card>
-
-  <Card title="Send a test request" icon="terminal">
-    Paste the test API key into a dashboard request console and inspect the response.
-  </Card>
-</CardGroup>
-
-## Before you begin
-
-You need an OurPocket account. For provider-backed operations, you also need test credentials for either Paystack or Flutterwave. Those are the active provider adapters; other catalog entries are currently marked **Coming soon**.
+You can complete this flow without Paystack, Flutterwave, Turnkey, or Privy credentials. Sandbox operations are simulated and move no real money.
 
 <Steps>
-  <Step title="Sign in and complete workspace onboarding">
-    Sign in to OurPocket. Complete the workspace onboarding flow shown after login before attempting to use project-level dashboard pages.
+  <Step title="Create an account and project">
+    Register in the dashboard, verify your email, sign in, and create a project. Project creation returns an `op_test_sk_` Sandbox key **once**. Save it on your server. The API also accepts `POST /v1/projects` with your user JWT and `{ "name": "My app" }`; its response includes `data.id` and `data.sandboxKey`.
   </Step>
-  <Step title="Create a project">
-    Open **Projects**, select **New project**, and provide a name and optional description. Submit the form and confirm that the project appears in the list.
+  <Step title="Create a customer">
+    Set `OURPOCKET_API_KEY` to that Sandbox key and `OURPOCKET_BASE_URL` to your API's `/v1` base URL. Create a customer with an idempotency key:
+
+    ```bash
+    curl -X POST "$OURPOCKET_BASE_URL/customers" \
+      -H "Authorization: Bearer $OURPOCKET_API_KEY" \
+      -H 'Content-Type: application/json' \
+      -H 'Idempotency-Key: quickstart-customer-1' \
+      -d '{"email":"developer@example.test"}'
+    ```
+
+    Copy `data.id` from the response into `CUSTOMER_ID`.
   </Step>
-  <Step title="Select the project">
-    Choose **Use Project** and verify the **Selected** badge. The dashboard stores this choice in local browser context and uses it on project-aware pages.
+  <Step title="Simulate a payment">
+    Amounts are positive integer minor-unit **strings**. For NGN, `"50000"` means ₦500.
+
+    ```bash
+    curl -X POST "$OURPOCKET_BASE_URL/payments" \
+      -H "Authorization: Bearer $OURPOCKET_API_KEY" \
+      -H 'Content-Type: application/json' \
+      -H 'Idempotency-Key: quickstart-payment-1' \
+      -d "{\"customer\":\"$CUSTOMER_ID\",\"amount\":\"50000\",\"currency\":\"NGN\"}"
+    ```
+
+    The default Sandbox scenario returns a completed `payment` in `data`. Use the same key and identical request body to retrieve the same operation. A changed body with that key returns `409`.
   </Step>
-  <Step title="Open API Keys">
-    Navigate to **API Keys**. The page automatically creates a missing test key or live key for the selected project. You do not need to run a separate manual key-generation step.
+  <Step title="Inspect the result">
+    Open **Payments**, **Transactions**, and **API Logs** in the dashboard, or call `GET /v1/payments`, `GET /v1/events`, and `GET /v1/api-logs` with the Sandbox key. The payment, event, and log share a request ID.
   </Step>
-  <Step title="Copy the test key">
-    Copy the test-environment key for your first request and store it securely. Do not use the live key while developing.
-  </Step>
-  <Step title="Connect an active provider">
-    Open **Providers** and configure Paystack or Flutterwave with appropriate test credentials. Providers marked **Coming soon** cannot be connected.
-  </Step>
-  <Step title="Open a request console">
-    Navigate to **Wallets** or **Transactions** and choose an available operation. These screens are request consoles, not wallet inventory or transaction history pages.
-  </Step>
-  <Step title="Paste the API key">
-    Manually paste the project test key into the console. Selecting a project does not automatically insert or authenticate with its key.
-  </Step>
-  <Step title="Submit the request">
-    Complete the required fields, review any amount, currency, reference, wallet identifier, and provider payload, then send the request.
-  </Step>
-  <Step title="Save the result">
-    Inspect the immediate response and persist important references, wallet IDs, transaction IDs, and statuses in your own application. The consoles do not provide durable inventory or history management.
+  <Step title="Receive a test event">
+    Add a public HTTPS endpoint under **Webhooks**. Save the `whsec_` signing secret when the endpoint is created. Send a test event in the dashboard, verify `OurPocket-Signature` against the raw request body, then inspect its delivery history. Local/private addresses are rejected. See [webhook verification](/user-guide/webhooks).
   </Step>
 </Steps>
 
-<Warning>
-  Treat project API keys and provider credentials as secrets. Never commit them to source control or expose them in frontend application code. Use a test key with provider test credentials during development.
-</Warning>
-
-## Optional webhook configuration
-
-You can open **Webhooks** and create an endpoint record for the selected project. New records subscribe only to `transaction.success` and `transaction.failed`.
-
-<Warning>
-  Outbound webhook delivery and request signing are not implemented. A saved endpoint will not receive events, so do not use webhook configuration as part of a production transaction flow.
-</Warning>
-
-## Troubleshooting
-
-### I cannot reach project tools
-
-Complete the workspace onboarding flow after login. If it reappears, verify that all required fields were submitted successfully.
-
-### API Keys does not show the project I expected
-
-Return to **Projects**, choose **Use Project** for the intended project, and reopen **API Keys**. Project selection is stored in local browser context.
-
-### The request console asks for an API key
-
-This is expected. Copy the test key from **API Keys** and paste it into the console manually.
-
-### The provider cannot be connected
-
-Use Paystack or Flutterwave. Other providers labeled **Coming soon** are not active adapters.
-
-### I cannot find wallet inventory or transaction history
-
-The **Wallets** and **Transactions** pages submit requests and show immediate responses. Store identifiers and transaction state in your own application for durable tracking.
-
-### My webhook endpoint receives nothing
-
-Outbound webhook delivery is not implemented. The dashboard currently stores endpoint configuration only.
-
-<CardGroup cols={2}>
-  <Card title="Accounts and projects" icon="folder" href="/user-guide/account-and-projects">
-    Learn how onboarding and local project selection work.
-  </Card>
-
-  <Card title="Wallets and transactions" icon="wallet" href="/user-guide/wallets-and-transactions">
-    Use the request consoles safely and interpret responses.
-  </Card>
-</CardGroup>
+The TypeScript SDK is a [private source package](/sdks/typescript), not a published npm package. The frontend repository also includes a runnable `packages/sdk/examples/quickstart.ts` and webhook receiver. To use real money, follow [going live](/guides/migrate-to-live).

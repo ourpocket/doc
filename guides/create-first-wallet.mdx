@@ -1,46 +1,8 @@
 ---
 title: "Create your first wallet"
-description: "Go from a project key to a created wallet and balance lookup."
+description: "Create a simulated fiat wallet with a Sandbox key."
 ---
 
-## Before you begin
+Create a project and save its `op_test_sk_` key as shown in [the quickstart](/quickstart). Call `POST /v1/wallets` with `{ "currency": "NGN" }` and a unique `Idempotency-Key`. The response is a completed wallet with `details.balance: "0"`. Read it with `GET /v1/wallets/{id}`.
 
-You need:
-
-- A selected OurPocket project
-- A project test key
-- A server environment that can keep the key secret
-- A customer identifier from your application
-
-<Steps>
-  <Step title="Configure environment variables">
-    ```bash
-    OURPOCKET_BASE_URL="https://your-ourpocket-api.example/v1"
-    OURPOCKET_API_KEY="your-test-project-key"
-    ```
-  </Step>
-  <Step title="Create the wallet">
-    ```bash
-    curl --request POST "$OURPOCKET_BASE_URL/wallets/create" \
-      --header "Authorization: Bearer $OURPOCKET_API_KEY" \
-      --header "Content-Type: application/json" \
-      --data '{
-        "userId": "customer_8462",
-        "currency": "NGN"
-      }'
-    ```
-  </Step>
-  <Step title="Store the wallet ID">
-    Read the wallet from the response `data` field and associate its ID with your customer record.
-  </Step>
-  <Step title="Retrieve the wallet and balance">
-    ```bash
-    curl "$OURPOCKET_BASE_URL/wallets/WALLET_ID" \
-      --header "Authorization: Bearer $OURPOCKET_API_KEY"
-    ```
-  </Step>
-</Steps>
-
-<Tip>
-  Begin with a ledger-only wallet. Add provider fields when your product specifically needs a corresponding provider resource.
-</Tip>
+The [wallet API examples](/developer-guide/wallet-api) show the exact cURL request, funding, and an internal Sandbox transfer. A Production chain wallet is a separate resource shape: connect Turnkey or Privy, use a live key, and provide `provider` and `chain` instead of fiat `currency`. It has an address but no simulated fiat balance.

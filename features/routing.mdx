@@ -1,55 +1,20 @@
 ---
-title: "Provider routing"
-description: "Choose how wallet operations reach Paystack or Flutterwave."
+title: "Payment routing"
+description: "Choose among connected payment providers with an auditable policy."
 ---
 
-OurPocket can execute wallet operations through Paystack or Flutterwave when you include provider credentials with the request.
+OurPocket chooses a Production payment provider in this order:
 
-## Direct selection
+1. If the request names `paystack` or `flutterwave`, use that connected provider.
+2. If exactly one eligible connection exists, use it.
+3. With multiple eligible connections, use the project's saved routing policy. Without one, the request is rejected so the choice is explicit.
 
-Set `provider` when your application already knows which provider to use.
+The policy can rank providers by settled payment success rate, configured fee estimate, observed checkout-initialization latency, or your specified priority. Measurements use up to the latest 1,000 payments in that environment. When data is absent, priority order breaks the tie; an unmeasured provider is not presented as 100% successful or zero cost.
 
-```json
-{
-  "provider": "flutterwave",
-  "providerApiKey": "provider-secret"
-}
-```
+The **Routing** dashboard page lets you set priority, strategy, operator status (`healthy`, `degraded`, `down`), and fee estimates in basis points. It also shows sample counts. A project key can read `GET /v1/provider-health`; your dashboard uses the project-scoped management endpoints. The payment stores its selection and `details.routingDecision`, including candidates, eligibility, policy, snapshot, and reason. Inspect that field when a route surprises you.
 
-## Strategy-based selection
+## Failover boundary
 
-Supply multiple credential candidates and select a routing strategy.
+With `requireHealthy`, a preferred provider marked `down` blocks a request. If you enable `safeFailover`, OurPocket selects the next eligible provider **before** any provider write. It never tries a different provider after a timeout or uncertain response. Those operations become `unknown` and remain associated with the original provider.
 
-| Strategy | Selection behavior |
-| --- | --- |
-| `best_success_rate` | Chooses the highest supplied `successRate` |
-| `lowest_fees` | Chooses the lowest supplied `feePercentage` |
-| `fastest_settlement` | Chooses the lowest supplied `settlementMinutes` |
-| `custom_priority` | Follows `providerPriority` or credential priority |
-
-```json
-{
-  "routingStrategy": "custom_priority",
-  "providerPriority": ["paystack", "flutterwave"],
-  "providerCredentials": [
-    {
-      "provider": "paystack",
-      "apiKey": "paystack-secret",
-      "priority": 1
-    },
-    {
-      "provider": "flutterwave",
-      "apiKey": "flutterwave-secret",
-      "priority": 2
-    }
-  ]
-}
-```
-
-<Info>
-  Routing values such as success rate, fee percentage, and settlement time are provided by your application with the request. They are not calculated automatically from your project metrics.
-</Info>
-
-## Ledger-only operations
-
-Omit provider and routing fields to execute supported operations against the ledger without calling a payment provider.
+`POST /v1/reconciliation` verifies pending and unknown Production payments and refunds against their original provider. The run records inspected, resolved, and unresolved counts. This is outcome verification, not a full provider-versus-ledger settlement comparison. [Configure the API policy](/developer-guide/provider-routing) or [inspect current limitations](/operations/current-limitations).

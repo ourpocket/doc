@@ -1,25 +1,12 @@
-# OurPocket documentation
+# OurPocket developer documentation
 
-This directory contains the Mintlify documentation for the OurPocket dashboard, management API, runtime wallet API, provider routing, webhooks, and operations.
+This Mintlify site is the user-facing guide for the normalized OurPocket financial API. It covers Sandbox and Production, provider connections, payments and refunds, wallets and simulated transfers, events and webhooks, routing, inspection, and the private TypeScript source SDK.
 
-## Preview locally
+## Preview and validate
 
 ```bash
 npx mintlify dev
-```
-
-Open `http://localhost:3000`.
-
-## Validate
-
-```bash
 npx mintlify validate
 ```
 
-## Content principles
-
-- Document implemented behavior separately from planned behavior.
-- Distinguish user JWTs, project API keys, provider credentials, and webhook secrets.
-- Treat `/v1/transactions` and direct `/v1/wallets/*` operations as different persistence models.
-- Do not claim outbound webhook delivery or signing until implemented.
-- Keep examples free of real credentials and personal data.
+The backend is the source of truth for routes and behavior (`infra/src/financial`, project/provider controllers, and `/docs`). The TypeScript client is `ourpocket/packages/sdk/src/index.ts`. Keep the site factual: catalog visibility is not execution support, the SDK is not published, and pricing or future domains are not API features.

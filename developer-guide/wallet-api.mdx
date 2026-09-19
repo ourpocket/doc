@@ -1,154 +1,36 @@
 ---
-title: "Wallet API"
-description: "Create wallets and execute wallet operations through the versioned OurPocket API."
+title: "Wallet API examples"
+description: "Create a Sandbox fiat wallet, fund it, and transfer test funds."
 ---
 
-The Wallet API exposes a normalized interface for creating and reading wallets and for credit, debit, and transfer operations. All endpoints on this page are under the versioned `/v1` base and require a project API key.
-
-```http
-Authorization: Bearer <project-api-key>
-```
-
-You can alternatively send the key in `x-api-key`.
-
-## Endpoints
-
-| Operation | Method | Path |
-| --- | --- | --- |
-| Create wallet | `POST` | `/v1/wallets/create` |
-| Get wallet | `GET` | `/v1/wallets/{walletId}` |
-| Credit wallet | `POST` | `/v1/wallets/credit` |
-| Debit wallet | `POST` | `/v1/wallets/debit` |
-| Transfer | `POST` | `/v1/wallets/transfer` |
-| Create durable transaction | `POST` | `/v1/transactions` |
-
-Successful responses use the `{ message, status, data }` envelope.
-
-## Create a wallet
-
-The currency defaults to `NGN` when omitted. `userId` is an optional identifier from your application. To create through a provider, supply `provider`, matching credentials, and any provider-specific fields in `providerPayload`.
+Set `OURPOCKET_BASE_URL` to your API's `/v1` URL and `OURPOCKET_API_KEY` to an `op_test_sk_` key. The response payload is inside `data`.
 
 ```bash
-curl --request POST \
-  --url "$OURPOCKET_BASE_URL/v1/wallets/create" \
-  --header "Authorization: Bearer $OURPOCKET_API_KEY" \
-  --header "Content-Type: application/json" \
-  --data '{
-    "currency": "NGN",
-    "userId": "customer_8462",
-    "provider": "flutterwave",
-    "providerCredentials": [
-      {
-        "provider": "flutterwave",
-        "apiKey": "<flutterwave-secret-key>"
-      }
-    ],
-    "providerPayload": {
-      "email": "customer@example.com",
-      "first_name": "Ada",
-      "last_name": "Okafor"
-    }
-  }'
+curl -X POST "$OURPOCKET_BASE_URL/wallets" \
+  -H "Authorization: Bearer $OURPOCKET_API_KEY" \
+  -H 'Content-Type: application/json' \
+  -H 'Idempotency-Key: wallet-example-1' \
+  -d '{"currency":"NGN"}'
 ```
 
-`providerPayload` is caller-supplied and provider-specific. Include only fields required by the selected provider operation.
-
-## Get a wallet
+Save `data.id` as `WALLET_ID`. Add simulated funds:
 
 ```bash
-curl --request GET \
-  --url "$OURPOCKET_BASE_URL/v1/wallets/4d845d2f-8314-45a1-b061-3ee56dbb29ec" \
-  --header "Authorization: Bearer $OURPOCKET_API_KEY"
+curl -X POST "$OURPOCKET_BASE_URL/sandbox/wallets/$WALLET_ID/fund" \
+  -H "Authorization: Bearer $OURPOCKET_API_KEY" \
+  -H 'Content-Type: application/json' \
+  -H 'Idempotency-Key: funding-example-1' \
+  -d '{"amount":"20000","currency":"NGN"}'
 ```
 
-Wallet balance operations use an external ledger service. A wallet record and its ledger balance are distinct concerns, and ledger availability can affect wallet reads and balance-changing operations.
-
-## Credit a wallet directly
-
-Amounts are decimal strings. The request can execute against the external ledger or use a supported provider route when provider configuration is supplied.
+`GET /v1/wallets/{id}` returns the updated wallet balance. Create a second wallet with a different idempotency key, then transfer:
 
 ```bash
-curl --request POST \
-  --url "$OURPOCKET_BASE_URL/v1/wallets/credit" \
-  --header "Authorization: Bearer $OURPOCKET_API_KEY" \
-  --header "Content-Type: application/json" \
-  --data '{
-    "walletId": "4d845d2f-8314-45a1-b061-3ee56dbb29ec",
-    "amount": "5000",
-    "currency": "NGN",
-    "reference": "credit_10001",
-    "metadata": {
-      "orderId": "order_1284"
-    }
-  }'
+curl -X POST "$OURPOCKET_BASE_URL/sandbox/transfers" \
+  -H "Authorization: Bearer $OURPOCKET_API_KEY" \
+  -H 'Content-Type: application/json' \
+  -H 'Idempotency-Key: transfer-example-1' \
+  -d "{\"fromWallet\":\"$WALLET_ID\",\"toWallet\":\"$DESTINATION_WALLET_ID\",\"amount\":\"5000\",\"currency\":\"NGN\"}"
 ```
 
-The debit body has the same core fields and may also include provider-routing fields:
-
-```bash
-curl --request POST \
-  --url "$OURPOCKET_BASE_URL/v1/wallets/debit" \
-  --header "Authorization: Bearer $OURPOCKET_API_KEY" \
-  --header "Content-Type: application/json" \
-  --data '{
-    "walletId": "4d845d2f-8314-45a1-b061-3ee56dbb29ec",
-    "amount": "2500",
-    "currency": "NGN",
-    "reference": "debit_10001",
-    "metadata": {
-      "payoutId": "payout_10001"
-    }
-  }'
-```
-
-## Transfer between wallets
-
-Both wallets must belong to the authenticated project and use the request currency.
-
-```bash
-curl --request POST \
-  --url "$OURPOCKET_BASE_URL/v1/wallets/transfer" \
-  --header "Authorization: Bearer $OURPOCKET_API_KEY" \
-  --header "Content-Type: application/json" \
-  --data '{
-    "fromWalletId": "4d845d2f-8314-45a1-b061-3ee56dbb29ec",
-    "toWalletId": "6d2dcb46-8cab-45ef-9f2e-bf11646d7507",
-    "amount": "1000",
-    "currency": "NGN",
-    "reference": "transfer_10001",
-    "metadata": {
-      "reason": "merchant settlement"
-    }
-  }'
-```
-
-## Direct wallet calls versus transactions
-
-<Warning>
-  Calls to `/v1/wallets/credit`, `/v1/wallets/debit`, and `/v1/wallets/transfer` execute the requested operation but do not create a local OurPocket transaction record. Do not rely on those routes for durable transaction history.
-</Warning>
-
-Use `POST /v1/transactions` when you need the canonical durable record. The backend creates a local record as `pending`, executes the operation, then records `success` or `failed`. Transaction references are unique within a project.
-
-```bash
-curl --request POST \
-  --url "$OURPOCKET_BASE_URL/v1/transactions" \
-  --header "Authorization: Bearer $OURPOCKET_API_KEY" \
-  --header "Content-Type: application/json" \
-  --data '{
-    "type": "credit",
-    "walletId": "4d845d2f-8314-45a1-b061-3ee56dbb29ec",
-    "amount": "5000",
-    "currency": "NGN",
-    "reference": "transaction_10001",
-    "metadata": {
-      "orderId": "order_1284"
-    }
-  }'
-```
-
-For `debit`, provide `walletId`. For `transfer`, provide `fromWalletId` and `toWalletId`. A repeated reference for the same project is rejected rather than creating a second durable record.
-
-<Note>
-  The local transaction status describes OurPocket's execution attempt. The balance-changing ledger itself is external to the API service.
-</Note>
+For Production, use an `op_live_sk_` key, connect Turnkey or Privy, and create a chain wallet with `{ "provider": "turnkey", "chain": "ethereum" }`. Do not send a fiat `currency`; funding, debit, and internal transfers are Sandbox-only. Read [wallet behavior](/features/wallets) before switching environments.

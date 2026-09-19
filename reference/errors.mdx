@@ -1,48 +1,18 @@
 ---
-title: "Errors"
-description: "Handle validation, authentication, authorization, conflict, and dependency failures."
+title: "Errors and uncertain outcomes"
+description: "Handle validation, conflicts, provider uncertainty, and SDK errors."
 ---
 
-OurPocket uses standard NestJS HTTP exceptions. Error responses are not wrapped in the success envelope.
+The backend uses HTTP status codes and Nest error responses. It does not expose a single stable enum of provider-specific error codes. Read the HTTP status, message, and `X-Request-Id`; do not branch on an invented code string.
 
-## Status codes
-
-| Status | Meaning | Common causes |
+| Status | Typical cause | What to do |
 | --- | --- | --- |
-| `400` | Bad request | Validation failure, missing fields, malformed payload |
-| `401` | Unauthorized | Invalid credentials, expired key, exhausted project-key quota, some currency or provider-credential errors |
-| `403` | Forbidden | Platform administrator permission required |
-| `404` | Not found | Missing owned project, wallet, transaction, provider, or webhook |
-| `409` | Conflict | Duplicate account, project resource, API-key scope, or transaction reference |
-| `500` | Internal server error | Unexpected provider, ledger, persistence, or application failure |
+| `400` | Invalid payload, missing idempotency key, unavailable provider capability, ambiguous provider choice, or unsupported environment operation | Correct the request or select an eligible connection |
+| `401` | Invalid, revoked, expired, or exhausted key | Use an active key for the intended project and environment |
+| `404` | Resource or connection not found in this scope | Check the UUID, project, and environment |
+| `409` | Idempotency key reused with a different body, amount/reference mismatch, or unsafe refund state | Inspect the original operation before changing anything |
+| `502` | Malformed provider response or a wallet provider request error | Inspect the operation and logs; do not blindly repeat a financial write |
 
-## Error body
+A transport timeout or uncertain provider response can leave the **resource** with `status: "unknown"` even when the create request itself returned successfully. This is deliberate: the provider may have accepted the write. Reuse the same idempotency key and body to retrieve it. For Production payments and refunds, verify or run reconciliation against the original provider; a later terminal state must not be overwritten by an old webhook.
 
-A typical NestJS error resembles:
-
-```json
-{
-  "statusCode": 400,
-  "message": ["amount must be a number string"],
-  "error": "Bad Request"
-}
-```
-
-The `message` can be a string or an array. Clients should support both forms.
-
-## Retry guidance
-
-Retry only when the failure is transient and the operation is safe to repeat.
-
-| Failure | Recommended action |
-| --- | --- |
-| Validation error | Correct the request; do not retry unchanged |
-| Invalid key | Replace or rotate the credential |
-| Quota exhausted | Stop requests and review key quota |
-| Duplicate transaction reference | Retrieve the existing transaction by its ID if available; do not submit a new financial operation blindly |
-| Provider timeout | Reconcile with the provider and ledger before retrying a non-idempotent operation |
-| Ledger failure after provider success | Treat as ambiguous and escalate to reconciliation |
-
-<Warning>
-  The provider retry engine retries all thrown provider errors up to three attempts. Your client should not add aggressive retries around non-idempotent provider-backed operations.
-</Warning>
+The TypeScript SDK throws `OurPocketError` with `status` and `requestId`. A client-side network failure has `status: 0`. Keep the idempotency key and investigate; the SDK never automatically retries writes.

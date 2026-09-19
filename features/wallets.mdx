@@ -1,58 +1,28 @@
 ---
-title: "Wallets"
-description: "Create project-scoped wallets and manage their balances."
+title: "Wallets and transfers"
+description: "Simulate fiat balances in Sandbox or create chain wallets in Production."
 ---
 
-A wallet represents a balance-bearing resource in one currency. Wallet identity belongs to your OurPocket project, while balance accounting is handled by the connected ledger service.
+Wallets have two distinct execution modes. Both use `POST /v1/wallets` with a project key and `Idempotency-Key`.
 
-## Create a wallet
+| | Sandbox fiat wallet | Production chain wallet |
+| --- | --- | --- |
+| Create body | `{ "currency": "NGN" }` | `{ "provider": "turnkey", "chain": "ethereum" }` |
+| `details.balance` | Integer minor-unit string, initially `"0"` | `null` |
+| `currency` | Fiat currency | `null` |
+| `details.address` | None | Provider chain address |
+| Funding, debit, transfer | Simulated in PostgreSQL | Unavailable |
 
-Use `POST /v1/wallets/create` with a project API key.
+You can optionally associate either wallet with an existing `customer` UUID in the same environment. Production requires a connected Turnkey or Privy account and supports `ethereum` or `solana`. Wallet creation returns a normalized resource and provider reference. An uncertain provider outcome can remain `unknown`; do not start a second creation with a new idempotency key to guess the result.
 
-```json
-{
-  "currency": "NGN",
-  "userId": "customer_8462"
-}
-```
+## Simulate money movement
 
-You can also provide a supported provider and provider-specific fields when wallet creation should create a corresponding resource with that provider.
+Sandbox operations use positive integer minor-unit strings and a matching currency:
 
-## Retrieve a wallet
+- `POST /v1/sandbox/wallets/{id}/fund` adds test funds.
+- `POST /v1/sandbox/wallets/{id}/debit` removes test funds if available.
+- `POST /v1/sandbox/transfers` moves funds between Sandbox wallets with `fromWallet`, `toWallet`, `amount`, and `currency`.
 
-Use `GET /v1/wallets/{walletId}`. The response combines wallet identity with its current ledger balance.
+Each creation requires `Idempotency-Key`. Balances update atomically. Insufficient funds fails the operation. Pending transfers reserve the source amount; use the Sandbox completion endpoint to resolve them once. These simulated values are never sent to a payment provider or the old external ledger service.
 
-## Credit a wallet
-
-A credit adds value to a wallet. It requires:
-
-- Wallet ID
-- Numeric amount string
-- Currency
-- Unique application reference
-
-The operation can be ledger-only or provider-backed.
-
-## Debit a wallet
-
-A debit removes value from a wallet. Use the same core fields as a credit and include provider routing fields only when needed.
-
-## Transfer between wallets
-
-A transfer moves value from one project wallet to another.
-
-```json
-{
-  "fromWalletId": "source_wallet_id",
-  "toWalletId": "destination_wallet_id",
-  "amount": "5000",
-  "currency": "NGN",
-  "reference": "transfer_1284"
-}
-```
-
-Both wallets must belong to the authenticated project and use the requested currency.
-
-<Note>
-  Use the unified Transactions API when you need OurPocket to store transaction status for later retrieval. Direct wallet operations return their immediate execution result but do not create the same transaction record.
-</Note>
+Use `GET /v1/wallets` or `GET /v1/wallets/{id}` to inspect wallets. [The wallet API guide](/developer-guide/wallet-api) has executable requests.

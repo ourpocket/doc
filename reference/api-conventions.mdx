@@ -1,68 +1,22 @@
 ---
 title: "API conventions"
-description: "Review versioning, validation, responses, authentication, and identifiers."
+description: "Versioning, amounts, response envelopes, and idempotency."
 ---
 
-## Versioning
-
-OurPocket uses URI versioning. Unless marked version-neutral, paths in this documentation begin with `/v1`.
-
-## Content type
-
-Send JSON request bodies with:
-
-```http
-Content-Type: application/json
-```
-
-## Successful responses
-
-Successful controller responses are wrapped in a common envelope:
+Normalized routes use `/v1`. Send JSON request bodies with `Content-Type: application/json`. Success responses use the existing envelope:
 
 ```json
 {
   "message": "Request successful",
   "status": "success",
-  "data": {
-    "id": "resource-id"
-  }
+  "data": { "id": "resource-uuid" }
 }
 ```
 
-Controllers can provide a more specific `message`. Clients should read the domain payload from `data`.
+Read the domain resource from `data`. IDs are UUIDs and should be treated as opaque. Dates are ISO 8601 strings. Lists of financial resources, events, and logs currently return the latest 100 records.
 
-## Validation
+All financial amounts are positive integer **minor-unit decimal strings**. For NGN, `"50000"` is ₦500. Do not send floating-point values. Adapters convert units only at the provider boundary. Production chain wallets have no fiat `currency` or simulated `details.balance`.
 
-Global validation:
+Use a project key in `Authorization: Bearer ...` or `x-api-key` for runtime financial routes. Its prefix and stored scope determine Sandbox or Production. Use a user JWT for management routes; dashboard financial requests also send `X-Environment`. `X-Request-Id` accepts a UUID and is echoed in the response. See [authentication](/concepts/authentication).
 
-- Transforms supported request values.
-- Removes unsupported properties.
-- Rejects non-whitelisted properties.
-- Applies DTO validation before controller execution.
-
-## Identifiers
-
-Resource identifiers are UUIDs unless an endpoint documents another format. Wallet, transaction, project, webhook, and API-key IDs should be treated as opaque strings.
-
-## Amounts
-
-Wallet and transaction request amounts are numeric strings:
-
-```json
-{
-  "amount": "5000",
-  "currency": "NGN"
-}
-```
-
-The repository does not define whether every provider payload uses major or minor currency units. Confirm provider-specific expectations before production use.
-
-## References
-
-Unified transactions enforce a unique reference per project. A duplicate returns a conflict rather than replaying the previous response.
-
-Direct wallet ledger endpoints pass references to the external ledger but do not enforce uniqueness in the API database.
-
-## Dates
-
-Persisted resources use ISO 8601 timestamp strings in API responses.
+Send a unique `Idempotency-Key` for financial creations, funding, debit, and transfers. An identical replay returns the original operation; a different payload with the same key returns `409`. A pending or unknown provider operation must be verified or reconciled before your application considers it complete. See [API keys](/developer-guide/api-keys).
