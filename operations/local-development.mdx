@@ -9,4 +9,4 @@ From `infra/`, install dependencies, configure its `.env` for PostgreSQL and JWT
 
 Set `PROVIDER_CONFIG_ENCRYPTION_KEY` to a stable secret for encrypted Production connections. Outbound webhook delivery needs Redis (`REDIS_HOST`, `REDIS_PORT`, optional `REDIS_PASSWORD`) and a backend worker with `FINANCIAL_WEBHOOK_WORKER=true`. An API-only process can use `FINANCIAL_WEBHOOK_WORKER=false`. Register webhook destinations with public HTTPS URLs; local/private addresses are rejected even in development.
 
-From `ourpocket/`, run `bun install` and `bun run dev`. Set `VITE_API_BASE_URL` to the backend `/v1` URL if needed. Use the dashboard to register, create a project, and run [the Sandbox quickstart](/quickstart). The TypeScript SDK examples live in `ourpocket/packages/sdk/examples/`.
+From `ourpocket/`, run `bun install` and `bun run dev`. Set `VITE_API_BASE_URL` to the backend `/v1` URL if needed. Use the dashboard to register, create a project, and run [the Sandbox quickstart](/quickstart). The separate TypeScript SDK and its examples live in `packages/typescript/` alongside the frontend repository.

@@ -1,31 +1,27 @@
 ---
 title: "TypeScript SDK"
-description: "Use the private source client with typed financial resources."
+description: "Use the standalone typed client for Sandbox and stateless provider operations."
 ---
 
-From the frontend repository's workspace, import the source package. All monetary amounts are positive integer minor-unit **strings**.
+The source package is `packages/typescript` and exports `@ourpocket/sdk`. Run `npm run check`, `npm test`, and `npm run build` from that directory before linking it into a server application.
 
 ```ts
 import { OurPocket } from "@ourpocket/sdk";
 
-const pocket = new OurPocket({
-  apiKey: process.env.OURPOCKET_API_KEY!,
-  baseUrl: "http://localhost:3000/v1",
-});
+const pocket = new OurPocket({ apiKey: process.env.OURPOCKET_API_KEY! });
 
-const customer = await pocket.customers.create(
-  { email: "developer@example.test" },
-  { idempotencyKey: "customer-1" },
+const checkout = await pocket.payments.create(
+  {
+    amount: "50000",
+    currency: "NGN",
+    provider: "paystack",
+    reference: "order_4821",
+    contact: { email: "buyer@example.com" },
+  },
+  { idempotencyKey: "sandbox-only-key" },
 );
-const payment = await pocket.payments.create(
-  { customer: customer.id, amount: "50000", currency: "NGN" },
-  { idempotencyKey: "payment-1", requestId: crypto.randomUUID() },
-);
-console.log(payment.id, payment.status);
+
+const overview = await pocket.paystack.overview({ limit: 10 });
 ```
 
-An `op_test_sk_` key runs this in Sandbox without provider credentials. `pocket.context.get()` returns its project and environment. In Production, connect Paystack or Flutterwave and use an `op_live_sk_` key. `pocket.payments.verify(payment.id)` checks a pending or unknown hosted checkout against its original provider. `pocket.refunds.create({ payment: payment.id, amount: "10000" }, { idempotencyKey: "refund-1" })` requests a partial refund.
-
-The client also exposes `wallets.create/get/list/fund/debit`, `transfers.create`, `sandbox.complete`, `events.list`, `providers.list/get`, `routing.get/update`, `providerHealth.list/update`, and `reconciliation.list/run`. Funding, debit, and transfers are Sandbox-only. Production chain wallet creation uses `{ provider: "turnkey", chain: "ethereum" }` or Privy/Solana, with no fiat currency or simulated balance.
-
-`OurPocketError` includes HTTP `status` and `requestId`; status `0` indicates transport uncertainty. The client does not retry a financial write. Reuse the original idempotency key and inspect the operation. The runnable repository examples are `packages/sdk/examples/quickstart.ts` and `packages/sdk/examples/webhook-receiver.ts`.
+The client exposes typed `paystack` and `flutterwave` namespaces for account resolution, recipients or beneficiaries, payouts, virtual accounts, and live overview reads. Mono is accepted for DirectPay checkout and verification. Provider writes do not retry automatically and their results are never stored by OurPocket. Keep references and results in your system.

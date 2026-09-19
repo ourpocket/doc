@@ -1,10 +1,8 @@
 ---
-title: "SDK availability"
-description: "Use the TypeScript source package or call the HTTP API directly."
+title: "SDKs"
+description: "Use OurPocket source SDKs with stateless provider operations."
 ---
 
-`@ourpocket/sdk` is a **private source workspace** inside the frontend repository. It is not published to npm. In that repository, import `OurPocket` from `@ourpocket/sdk`; in a separate application, use the HTTP API or bring the source package into your workspace. Do not run `npm install @ourpocket/sdk` expecting a public release.
+The TypeScript client validates Sandbox resources and transient provider responses. It supports Paystack and Flutterwave account resolution, recipients or beneficiaries, payouts, virtual accounts, and live overviews, plus Mono DirectPay checkout and verification.
 
-The TypeScript client validates normalized responses and supports customers, payments, refunds, wallets, sandbox transfers, providers, events, routing, provider health, and reconciliation. It accepts a configurable base URL, request IDs, and idempotency keys. It does not automatically retry financial writes.
-
-The older Python, Go, and PHP example clients in this repository target legacy wallet endpoints and are not current SDKs for the normalized financial API. Use [the HTTP reference](/reference/endpoints) in those languages until dedicated clients are released. See the [TypeScript guide](/sdks/typescript) for real method signatures.
+Provider writes never retry automatically. Keep provider references and results in your application because OurPocket does not retain live provider data.

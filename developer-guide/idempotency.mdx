@@ -1,16 +1,8 @@
 ---
 title: "Idempotency"
-description: "Prevent duplicate financial creations and handle uncertain responses."
+description: "Use idempotency for simulated financial writes and references for live providers."
 ---
 
-Send `Idempotency-Key` on customer, payment, refund, and wallet creations and on Sandbox funding, debit, and transfer requests. Choose a unique value per intended operation and store it beside your own business record.
+Send `Idempotency-Key` for Sandbox resource creation, funding, debit, and transfers. Repeating an identical Sandbox request returns the same simulated operation; a changed payload returns `409 Conflict`.
 
-```http
-Idempotency-Key: order-4839-checkout
-```
-
-OurPocket scopes the key to its project and environment. It persists a fingerprint and an initial operation before contacting a Production provider. Repeating the same operation and body with the same key returns the existing resource. A different body or operation with that key returns `409 Conflict`. Keys can be at most 200 characters.
-
-If the HTTP request times out, the provider outcome may be uncertain. Reuse the same key **and same body** to recover the original OurPocket operation. Read its status and provider reference, then verify a Production payment/refund or run reconciliation against the original provider. Do not switch providers or create a new key simply to retry the money movement. The TypeScript SDK does not automatically retry financial writes.
-
-Verification, reads, routing configuration, and webhook replay have their own semantics and do not create a second financial write through this key. See [errors](/reference/errors) for `pending` and `unknown` states.
+Production provider operations are intentionally stateless. Supply and retain your own provider reference where the provider supports one. If a network request times out, query or verify the original provider reference; do not create another financial write automatically. The TypeScript SDK never retries writes.

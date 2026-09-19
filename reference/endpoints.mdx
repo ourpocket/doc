@@ -1,26 +1,19 @@
 ---
 title: "API reference"
-description: "Implemented normalized financial and project management endpoints."
+description: "Implemented project, Sandbox, and stateless provider endpoints."
 ---
 
-All paths below begin with `/v1`. **Project key** means the request's project and environment come from `op_test_sk_` or `op_live_sk_`. **JWT** means a signed-in dashboard user; project dashboard financial routes also take `X-Environment`.
+All paths begin with `/v1`.
 
 | Domain | Method and path | Auth |
 | --- | --- | --- |
-| Projects | `POST /projects`, `GET /projects`, `GET /projects/{id}` | JWT |
-| API keys | `POST /projects/{id}/api-keys`, `GET /projects/{id}/api-keys`, `POST /projects/{id}/api-keys/{keyId}/rotate`, `DELETE /projects/{id}/api-keys/{keyId}` | JWT |
-| Catalog and connections | `GET /provider-catalog`, `POST /projects/{id}/providers/connect`, `GET /projects/{id}/providers` | JWT |
-| Customers | `POST /customers`, `GET /customers`, `GET /customers/{id}` | Project key |
-| Payments | `POST /payments`, `GET /payments`, `GET /payments/{id}`, `POST /payments/{id}/verify` | Project key |
-| Refunds | `POST /refunds`, `GET /refunds`, `GET /refunds/{id}`, `POST /refunds/{id}/verify` | Project key |
-| Wallets | `POST /wallets`, `GET /wallets`, `GET /wallets/{id}` | Project key |
-| Sandbox money movement | `POST /sandbox/wallets/{id}/fund`, `POST /sandbox/wallets/{id}/debit`, `POST /sandbox/transfers`, `POST /sandbox/operations/{id}/complete` | Sandbox key only |
-| Inspection | `GET /financial-transactions`, `GET /integrations`, `GET /events`, `GET /api-logs`, `GET /financial-context`, `GET /providers` | Project key |
-| Routing | `GET /routing-policy`, `POST /routing-policy`, `GET /provider-health`, `POST /provider-health/{provider}` | Project key |
-| Reconciliation | `GET /reconciliation`, `POST /reconciliation` | Project key; runs require Production |
-| Dashboard inspection | `GET /projects/{id}/financial/resources`, `/metrics`, `/events`, `/logs`, `/provider-health`, `/reconciliation` | JWT + environment header |
-| Dashboard webhooks | `GET/POST /projects/{id}/financial/webhooks`, `DELETE /projects/{id}/financial/webhooks/{webhookId}`, `GET /projects/{id}/financial/deliveries`, `POST /projects/{id}/financial/deliveries/{deliveryId}/replay`, `POST /projects/{id}/financial/webhooks/test` | JWT + environment header |
+| Projects and connections | `POST/GET /projects`, `GET /provider-catalog`, `POST /projects/{id}/providers/connect`, `GET /projects/{id}/providers` | JWT |
+| Checkout and verification | `POST /payments`, `POST /payments/verify`, `POST /refunds`, `POST /refunds/verify` | Project key |
+| Sandbox wallets | `POST/GET /wallets`, `POST /sandbox/wallets/{id}/fund`, `POST /sandbox/wallets/{id}/debit`, `POST /sandbox/transfers` | Sandbox key |
+| Account resolution | `POST /providers/{provider}/account-resolution` | Live project key |
+| Paystack | `/providers/paystack/recipients`, `/payouts`, `/virtual-accounts`, `/virtual-accounts/requery` | Live project key |
+| Flutterwave | `/providers/flutterwave/beneficiaries`, `/payouts`, `/virtual-accounts` | Live project key |
+| Live overview | `GET /providers/{provider}/overview?from=&to=&page=&limit=` | Live project key |
+| Dashboard overview | `GET /projects/{id}/providers/{provider}/overview?from=&to=&page=&limit=` | JWT |
 
-The dashboard also has project-scoped `GET/POST /projects/{id}/financial/routing-policy` and `POST /projects/{id}/financial/provider-health/{provider}`. Every financial creation and Sandbox money-movement request requires `Idempotency-Key`. Verification, reads, policy updates, and manual replay are separate actions.
-
-Legacy `/v1/wallets/create`, `/v1/wallets/credit`, `/v1/wallets/debit`, `/v1/wallets/transfer`, and `/v1/transactions` routes remain for compatibility with older clients and have different semantics. Legacy wallet reads also work at `/v1/wallets/legacy/{id}` and through the normalized `GET /v1/wallets/{id}` fallback when a matching legacy record exists. New integrations should use the normalized routes above. The live Swagger reference is available at `/docs` on a running backend.
+List and status paths append `/{reference}` to the relevant provider namespace. Overview defaults to 30 days and 10 items, caps lists at 100, is uncached, and returns no retained provider activity. The live Swagger reference is available at `/docs`.

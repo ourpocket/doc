@@ -1,16 +1,13 @@
 ---
-title: "Go live"
-description: "Move a working Sandbox integration to connected Production providers."
+title: "Move to Production"
+description: "Connect and validate a provider account before making live requests."
 ---
 
-Keep the same normalized customer, payment, refund, event, and wallet API concepts, but use a Production key and real connected providers. Sandbox data does not migrate into Production.
+1. Keep Sandbox test data separate; it does not migrate to Production.
+2. Connect a Paystack, Flutterwave, or Mono account while Production is selected.
+3. Provide the configured callback URL, webhook secret, and live credentials required by that provider. Validation checks access without moving money.
+4. Create and store an `op_live_sk_` key on your server.
+5. Send a caller-owned provider reference, transient contact data where required, and a callback URL for Flutterwave or Mono checkout.
+6. Configure provider webhooks directly in the provider dashboard and retain provider results in your own system.
 
-1. Complete a Sandbox flow, including failure, pending, and timeout scenarios. Save and reuse idempotency keys for retried client requests.
-2. In your project select **Production**. Connect your own Paystack or Flutterwave account for payments, and Turnkey or Privy if you need chain wallet creation. Store connection credentials through **Providers**; do not send them in operation bodies.
-3. Create an `op_live_sk_` key under **API keys** and store it only on your server. The key determines Production automatically. Create Production customers; Sandbox customer IDs are not shared.
-4. Register a public HTTPS webhook endpoint in Production, save its one-time `whsec_` secret, verify the raw-body HMAC and timestamp, and deduplicate by event ID. Send a test event and inspect the delivery history.
-5. With two connected payment providers, select one explicitly or save a routing policy. Set fee estimates and operator health where relevant. Check the stored routing decision on a payment.
-6. Create a hosted checkout with your live key. Flutterwave requires an HTTPS `callbackUrl`. Redirect to `details.checkoutUrl`, then verify the payment against its original provider. Do not treat initialization as settlement.
-7. Monitor **Payments**, **Transactions**, **API Logs**, **Webhooks**, and **Routing**. Verify pending or unknown Production operations or run reconciliation; never start another financial write just because the provider response was uncertain.
-
-Production rejects simulated scenarios, fiat wallet funding, debits, and internal transfers. Turnkey and Privy creation returns a chain address without a fiat balance. The backend must have a stable provider-credential encryption secret, migrations applied, and a Redis webhook worker configured before receiving live traffic.
+OurPocket returns live provider results but does not retain them, so use your application and provider dashboard for verification and reconciliation.

@@ -1,0 +1,10 @@
+---
+title: "Live provider activity"
+description: "Fetch a transient operational summary from a connected provider account."
+---
+
+Use `GET /v1/providers/{provider}/overview` with an `op_live_sk_` key, or the matching dashboard route with a JWT. `from`, `to`, `page`, and `limit` filter the request; the default window is 30 days and the maximum list length is 100.
+
+The response can include connection capability state, per-currency balances, transaction counts, recent payments, recent payouts, pending payout count, and recent dedicated or virtual accounts. It exposes only provider, reference, status, amount, currency, timestamps, bank name, and a masked account number.
+
+Each section can be unavailable independently when the provider account lacks a product or a provider call fails. The overview has no cache and creates no database record, log, event, delivery, worker message, or snapshot. Refreshing makes a new provider request.

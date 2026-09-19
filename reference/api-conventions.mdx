@@ -1,22 +1,12 @@
 ---
 title: "API conventions"
-description: "Versioning, amounts, response envelopes, and idempotency."
+description: "Versioning, amounts, authentication, and stateless live operations."
 ---
 
-Normalized routes use `/v1`. Send JSON request bodies with `Content-Type: application/json`. Success responses use the existing envelope:
+Normalized routes use `/v1` and return the established `{ "data": … }` envelope. Use positive integer minor-unit decimal strings for write amounts; never send floating-point values.
 
-```json
-{
-  "message": "Request successful",
-  "status": "success",
-  "data": { "id": "resource-uuid" }
-}
-```
+A project key derives the project and environment. `op_test_sk_` runs simulated Sandbox operations only. `op_live_sk_` can call an active, validated production provider connection. Dashboard provider-overview routes use a user JWT and project scope.
 
-Read the domain resource from `data`. IDs are UUIDs and should be treated as opaque. Dates are ISO 8601 strings. Lists of financial resources, events, and logs currently return the latest 100 records.
+Live provider calls are stateless. OurPocket returns the provider result, then discards it. It does not save provider transactions, balances, accounts, payout or recipient data, customer data, webhook payloads, or snapshots. Use a caller-owned provider reference and retain results in your own system.
 
-All financial amounts are positive integer **minor-unit decimal strings**. For NGN, `"50000"` is ₦500. Do not send floating-point values. Adapters convert units only at the provider boundary. Production chain wallets have no fiat `currency` or simulated `details.balance`.
-
-Use a project key in `Authorization: Bearer ...` or `x-api-key` for runtime financial routes. Its prefix and stored scope determine Sandbox or Production. Use a user JWT for management routes; dashboard financial requests also send `X-Environment`. `X-Request-Id` accepts a UUID and is echoed in the response. See [authentication](/concepts/authentication).
-
-Send a unique `Idempotency-Key` for financial creations, funding, debit, and transfers. An identical replay returns the original operation; a different payload with the same key returns `409`. A pending or unknown provider operation must be verified or reconciled before your application considers it complete. See [API keys](/developer-guide/api-keys).
+`X-Request-Id` accepts a UUID. Sandbox writes use `Idempotency-Key`; production writes do not retry automatically.

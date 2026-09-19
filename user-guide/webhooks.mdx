@@ -1,29 +1,10 @@
 ---
-title: "Webhooks"
-description: "Receive signed OurPocket events and inspect delivery attempts."
+title: "Provider webhooks"
+description: "Configure Paystack, Flutterwave, and Mono webhooks directly."
 ---
 
-Events describe normalized financial lifecycle changes. Create a public HTTPS endpoint in **Webhooks** for the current project and environment, or use `POST /v1/projects/{projectId}/financial/webhooks` with a user JWT and `X-Environment`. The body is `{ "url": "https://your-app.example/webhooks/ourpocket", "events": "payment.completed,refund.completed" }`. Omit `events` or send an empty string to receive all supported event types.
+Configure your webhook URL directly in the Paystack, Flutterwave, or Mono dashboard. Verify each provider’s signature against its raw request body using the secret stored in your own application.
 
-Save the returned `whsec_` secret when you create the endpoint. List responses do not reveal it. Private/internal destinations, unsafe DNS answers, and redirects are rejected. Your endpoint should return a `2xx` response after validating and recording the event.
+OurPocket does not relay provider webhooks, store their payloads, retry delivery, or replay provider events. When you receive a provider event, retain the provider reference and run your own verification or reconciliation workflow against that provider.
 
-## Verify the signature
-
-OurPocket sends JSON with `id`, `type`, `environment`, `requestId`, `createdAt`, and `data`. It sends `OurPocket-Signature: t=<unix-seconds>,v1=<hex-hmac>` and `OurPocket-Delivery-Id`. Compute HMAC-SHA256 using your `whsec_` secret over the exact UTF-8 bytes of `t + "." + rawBody`. Compare in constant time and reject old timestamps. Do not parse and reserialize JSON before verifying.
-
-```ts
-import { createHmac, timingSafeEqual } from "node:crypto";
-
-function verify(rawBody: Buffer, header: string, secret: string): boolean {
-  const fields = Object.fromEntries(header.split(",").map((part) => part.split("=")));
-  const timestamp = Number(fields.t);
-  if (!Number.isFinite(timestamp) || Math.abs(Date.now() / 1000 - timestamp) > 300) return false;
-  const expected = createHmac("sha256", secret).update(`${fields.t}.${rawBody.toString("utf8")}`).digest("hex");
-  const received = fields.v1 ?? "";
-  return received.length === expected.length && timingSafeEqual(Buffer.from(received), Buffer.from(expected));
-}
-```
-
-Persist event IDs to make your business handler idempotent. A retry or manual replay keeps the same event ID but creates a new delivery ID. Delivery attempts record HTTP status, latency, and a bounded redacted response. Automatic retries occur after 1 minute, 5 minutes, 30 minutes, 2 hours, and 12 hours. Open **Webhooks** for delivery history, test events, and replay, or use `GET /v1/projects/{projectId}/financial/deliveries` and `POST /v1/projects/{projectId}/financial/deliveries/{id}/replay`.
-
-Provider-to-OurPocket callbacks are a different flow. Paystack and Flutterwave signatures are verified against the connected Production credentials; OurPocket stores a deduplicated receipt and verifies the provider object before settlement. Your application receives the normalized OurPocket event described here.
+OurPocket connections may require a callback URL and webhook secret to validate a provider account, but provider event data remains outside OurPocket.

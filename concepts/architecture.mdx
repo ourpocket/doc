@@ -1,16 +1,10 @@
 ---
 title: "Architecture"
-description: "How applications, OurPocket, and customer-owned providers interact."
+description: "How Sandbox simulation and stateless provider calls are separated."
 ---
 
-Your server calls OurPocket with a project key. The key identifies its Sandbox or Production environment. OurPocket returns normalized resources and events while keeping the provider reference available for inspection.
+Sandbox uses PostgreSQL for simulated payments, fiat wallets, balances, and transfers. It does not call providers or move real money.
 
-```text
-Your application → OurPocket payments → Paystack / Flutterwave
-                 → OurPocket wallets  → Turnkey / Privy
-                 ← Signed event webhook
-```
+Production reads an encrypted, validated project connection and makes a direct request to the selected provider. The response returns to the caller and is discarded: no provider transaction, balance, virtual account, recipient, payout, customer detail, webhook payload, or overview snapshot is persisted by OurPocket.
 
-In Sandbox, simulated payment and fiat wallet operations use PostgreSQL and do not call providers or the older external ledger. In Production, payment and wallet adapters use encrypted customer-owned connections. Provider responses are normalized; a hosted checkout remains pending until verified. An uncertain provider outcome is recorded as `unknown`, with no automatic financial-write retry.
-
-Events are persisted with state changes and delivered through a Redis-backed worker. The dashboard reads environment-scoped resources, logs, deliveries, routing decisions, and reconciliation runs. See [current boundaries](/operations/current-limitations) for domains that do not yet have normalized execution.
+Applications configure and receive Paystack, Flutterwave, and Mono webhooks directly. They retain provider references and results for support, verification, and reconciliation.
