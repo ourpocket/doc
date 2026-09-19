@@ -3,7 +3,7 @@ title: "SDK availability"
 description: "Use the TypeScript source package or call the HTTP API directly."
 ---
 
-`@ourpocket/sdk` is a **private source workspace** inside the frontend repository. It is not published to npm. In that repository, import `OurPocket` from `@ourpocket/sdk`; in a separate application, use the HTTP API or bring the source package into your workspace. Do not run `npm install @ourpocket/sdk` expecting a public release.
+`@ourpocket/sdk` is a **private standalone TypeScript package** at `packages/typescript`, outside the frontend repository. It is not published to npm and has no remote connected yet. Build it locally and add the directory to your server application, or call the HTTP API directly. Do not run `npm install @ourpocket/sdk` expecting a public release.
 
 The TypeScript client validates normalized responses and supports customers, payments, refunds, wallets, sandbox transfers, providers, events, routing, provider health, and reconciliation. It accepts a configurable base URL, request IDs, and idempotency keys. It does not automatically retry financial writes.
 

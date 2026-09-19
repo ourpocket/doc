@@ -12,6 +12,6 @@ This page describes implemented behavior, not a future roadmap.
 - Reconciliation verifies pending and unknown Production payments and refunds with their original provider. It is not a three-way provider/ledger/bank settlement engine and does not resolve an unknown wallet creation automatically.
 - Signed outbound webhooks, retry scheduling, attempt history, test events, and replay exist. They require a running Redis-backed delivery worker. Financial logs expire after seven days.
 - Stablecoin infrastructure, KYC/identity, bank payouts, production fiat wallet funding, a native double-entry ledger, executable subscription billing, and enterprise SSO/RBAC are not implemented in these normalized APIs. Catalog visibility is not proof of execution support.
-- The TypeScript SDK is private source code in the frontend repository, not a published package. The old Python, Go, and PHP examples target compatibility endpoints.
+- The TypeScript SDK is a private standalone package at `packages/typescript`, not a published package. The old Python, Go, and PHP examples target compatibility endpoints.
 
 Use the capability flags from `GET /v1/providers` and the environment-specific dashboard connection state before exposing a feature to customers.

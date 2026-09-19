@@ -9,4 +9,4 @@ npx mintlify dev
 npx mintlify validate
 ```
 
-The backend is the source of truth for routes and behavior (`infra/src/financial`, project/provider controllers, and `/docs`). The TypeScript client is `ourpocket/packages/sdk/src/index.ts`. Keep the site factual: catalog visibility is not execution support, the SDK is not published, and pricing or future domains are not API features.
+The backend is the source of truth for routes and behavior (`infra/src/financial`, project/provider controllers, and `/docs`). The TypeScript client is maintained separately at `../packages/typescript/src/index.ts` until its own remote is connected. Keep the site factual: catalog visibility is not execution support, the SDK is not published, and pricing or future domains are not API features.

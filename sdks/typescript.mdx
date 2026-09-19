@@ -3,7 +3,7 @@ title: "TypeScript SDK"
 description: "Use the private source client with typed financial resources."
 ---
 
-From the frontend repository's workspace, import the source package. All monetary amounts are positive integer minor-unit **strings**.
+The SDK lives in a standalone `packages/typescript` directory outside the frontend repository. Its remote and npm release are not connected yet. From that directory, run `bun install`, `bun run check`, `bun run test`, and `bun run build`; then add the built directory as a local dependency in your server application. All monetary amounts are positive integer minor-unit **strings**.
 
 ```ts
 import { OurPocket } from "@ourpocket/sdk";
@@ -28,4 +28,4 @@ An `op_test_sk_` key runs this in Sandbox without provider credentials. `pocket.
 
 The client also exposes `wallets.create/get/list/fund/debit`, `transfers.create`, `sandbox.complete`, `events.list`, `providers.list/get`, `routing.get/update`, `providerHealth.list/update`, and `reconciliation.list/run`. Funding, debit, and transfers are Sandbox-only. Production chain wallet creation uses `{ provider: "turnkey", chain: "ethereum" }` or Privy/Solana, with no fiat currency or simulated balance.
 
-`OurPocketError` includes HTTP `status` and `requestId`; status `0` indicates transport uncertainty. The client does not retry a financial write. Reuse the original idempotency key and inspect the operation. The runnable repository examples are `packages/sdk/examples/quickstart.ts` and `packages/sdk/examples/webhook-receiver.ts`.
+`OurPocketError` includes HTTP `status` and `requestId`; status `0` indicates transport uncertainty. The client does not retry a financial write. Reuse the original idempotency key and inspect the operation. The runnable examples are `packages/typescript/examples/quickstart.ts` and `packages/typescript/examples/webhook-receiver.ts`.
