@@ -1,0 +1,10 @@
+---
+title: "API logs"
+description: "Trace an operation through redacted request and provider activity."
+---
+
+Open **API Logs** in the dashboard or call `GET /v1/api-logs` with a project key. The list is scoped to the key's project and environment and returns the most recent 100 records. A dashboard user can read `GET /v1/projects/{projectId}/financial/logs` with the matching `X-Environment`.
+
+Each log has an `id`, `requestId`, `operation`, `source` (`application` or `provider`), redacted `details`, and `createdAt`. Request logs include HTTP status and latency; provider logs record a resource ID, reference/status where available, or an outcome such as `unknown`. Credential-like values are redacted. Raw provider response bodies and secrets are not exposed.
+
+Use `X-Request-Id` when creating an operation, then search the resource, event, and delivery by that UUID. Inspect the log alongside the normalized resource: a successful checkout initialization can still leave a `pending` payment until provider verification. Logs expire after seven days; financial resources, events, and webhook delivery metadata remain available under their own retention rules.

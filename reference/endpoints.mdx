@@ -1,60 +1,26 @@
 ---
-title: "Endpoint index"
-description: "Find the management and runtime endpoints implemented by the API."
+title: "API reference"
+description: "Implemented normalized financial and project management endpoints."
 ---
 
-## Authentication
+All paths below begin with `/v1`. **Project key** means the request's project and environment come from `op_test_sk_` or `op_live_sk_`. **JWT** means a signed-in dashboard user; project dashboard financial routes also take `X-Environment`.
 
-| Method | Path | Auth |
+| Domain | Method and path | Auth |
 | --- | --- | --- |
-| `POST` | `/v1/auth/register` | None |
-| `POST` | `/v1/auth/login` | None |
-| `POST` | `/v1/auth/verify-email` | None |
-| `POST` | `/v1/auth/request-verify-email` | None |
-| `POST` | `/v1/auth/forgotten-password` | None |
-| `POST` | `/v1/auth/reset-password` | None |
+| Projects | `POST /projects`, `GET /projects`, `GET /projects/{id}` | JWT |
+| API keys | `POST /projects/{id}/api-keys`, `GET /projects/{id}/api-keys`, `POST /projects/{id}/api-keys/{keyId}/rotate`, `DELETE /projects/{id}/api-keys/{keyId}` | JWT |
+| Catalog and connections | `GET /provider-catalog`, `POST /projects/{id}/providers/connect`, `GET /projects/{id}/providers` | JWT |
+| Customers | `POST /customers`, `GET /customers`, `GET /customers/{id}` | Project key |
+| Payments | `POST /payments`, `GET /payments`, `GET /payments/{id}`, `POST /payments/{id}/verify` | Project key |
+| Refunds | `POST /refunds`, `GET /refunds`, `GET /refunds/{id}`, `POST /refunds/{id}/verify` | Project key |
+| Wallets | `POST /wallets`, `GET /wallets`, `GET /wallets/{id}` | Project key |
+| Sandbox money movement | `POST /sandbox/wallets/{id}/fund`, `POST /sandbox/wallets/{id}/debit`, `POST /sandbox/transfers`, `POST /sandbox/operations/{id}/complete` | Sandbox key only |
+| Inspection | `GET /financial-transactions`, `GET /integrations`, `GET /events`, `GET /api-logs`, `GET /financial-context`, `GET /providers` | Project key |
+| Routing | `GET /routing-policy`, `POST /routing-policy`, `GET /provider-health`, `POST /provider-health/{provider}` | Project key |
+| Reconciliation | `GET /reconciliation`, `POST /reconciliation` | Project key; runs require Production |
+| Dashboard inspection | `GET /projects/{id}/financial/resources`, `/metrics`, `/events`, `/logs`, `/provider-health`, `/reconciliation` | JWT + environment header |
+| Dashboard webhooks | `GET/POST /projects/{id}/financial/webhooks`, `DELETE /projects/{id}/financial/webhooks/{webhookId}`, `GET /projects/{id}/financial/deliveries`, `POST /projects/{id}/financial/deliveries/{deliveryId}/replay`, `POST /projects/{id}/financial/webhooks/test` | JWT + environment header |
 
-## Platform accounts and projects
+The dashboard also has project-scoped `GET/POST /projects/{id}/financial/routing-policy` and `POST /projects/{id}/financial/provider-health/{provider}`. Every financial creation and Sandbox money-movement request requires `Idempotency-Key`. Verification, reads, policy updates, and manual replay are separate actions.
 
-| Method | Path | Auth |
-| --- | --- | --- |
-| `POST` | `/v1/platform-accounts` | JWT |
-| `GET` | `/v1/platform-accounts/me` | JWT |
-| `GET` | `/v1/platform-accounts/me/projects` | JWT |
-| `POST` | `/v1/projects` | JWT |
-| `GET` | `/v1/projects` | JWT |
-| `GET` | `/v1/projects/{projectId}` | JWT |
-
-## Project configuration
-
-| Method | Path | Auth |
-| --- | --- | --- |
-| `POST` | `/v1/projects/{projectId}/api-keys` | JWT |
-| `GET` | `/v1/projects/{projectId}/api-keys` | JWT |
-| `DELETE` | `/v1/projects/{projectId}/api-keys/{keyId}` | JWT |
-| `GET` | `/v1/provider-catalog` | JWT |
-| `POST` | `/v1/projects/{projectId}/providers/connect` | JWT |
-| `POST` | `/v1/projects/{projectId}/providers` | JWT |
-| `GET` | `/v1/projects/{projectId}/providers` | JWT |
-| `POST` | `/v1/projects/{projectId}/webhooks` | JWT |
-| `GET` | `/v1/projects/{projectId}/webhooks` | JWT |
-| `DELETE` | `/v1/projects/{projectId}/webhooks/{webhookId}` | JWT |
-| `GET` | `/v1/projects/{projectId}/usage-metrics` | JWT |
-
-## Runtime API
-
-| Method | Path | Auth |
-| --- | --- | --- |
-| `POST` | `/v1/wallets/create` | Project key |
-| `POST` | `/v1/wallets` | Project key, legacy alias |
-| `GET` | `/v1/wallets/{walletId}` | Project key |
-| `POST` | `/v1/wallets/credit` | Project key |
-| `POST` | `/v1/wallets/debit` | Project key |
-| `POST` | `/v1/wallets/transfer` | Project key |
-| `POST` | `/v1/transactions` | Project key |
-| `GET` | `/v1/transactions/{transactionId}` | Project key |
-| `POST` | `/ourpocket/webhook` | Project key |
-
-## Legacy surfaces
-
-The backend also contains user-level API-key, user-provider, and process-local wallet-provider endpoints. They are not part of the current project-scoped dashboard workflow and should be treated as legacy until product ownership confirms their status.
+Legacy `/v1/wallets/create`, `/v1/wallets/credit`, `/v1/wallets/debit`, `/v1/wallets/transfer`, and `/v1/transactions` routes remain for compatibility with older clients and have different semantics. Legacy wallet reads also work at `/v1/wallets/legacy/{id}` and through the normalized `GET /v1/wallets/{id}` fallback when a matching legacy record exists. New integrations should use the normalized routes above. The live Swagger reference is available at `/docs` on a running backend.

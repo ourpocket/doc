@@ -1,88 +1,29 @@
 ---
-title: "Webhook endpoints"
-description: "Create project webhook endpoint records and understand the current delivery limitations."
+title: "Webhooks"
+description: "Receive signed OurPocket events and inspect delivery attempts."
 ---
 
-The **Webhooks** screen lets you create endpoint records for the selected project. Each new record subscribes only to the supported transaction outcome events.
+Events describe normalized financial lifecycle changes. Create a public HTTPS endpoint in **Webhooks** for the current project and environment, or use `POST /v1/projects/{projectId}/financial/webhooks` with a user JWT and `X-Environment`. The body is `{ "url": "https://your-app.example/webhooks/ourpocket", "events": "payment.completed,refund.completed" }`. Omit `events` or send an empty string to receive all supported event types.
 
-## Supported subscriptions
+Save the returned `whsec_` secret when you create the endpoint. List responses do not reveal it. Private/internal destinations, unsafe DNS answers, and redirects are rejected. Your endpoint should return a `2xx` response after validating and recording the event.
 
-New endpoint records subscribe to:
+## Verify the signature
 
-- `transaction.success`
-- `transaction.failed`
+OurPocket sends JSON with `id`, `type`, `environment`, `requestId`, `createdAt`, and `data`. It sends `OurPocket-Signature: t=<unix-seconds>,v1=<hex-hmac>` and `OurPocket-Delivery-Id`. Compute HMAC-SHA256 using your `whsec_` secret over the exact UTF-8 bytes of `t + "." + rawBody`. Compare in constant time and reject old timestamps. Do not parse and reserialize JSON before verifying.
 
-The dashboard does not currently offer additional event subscriptions.
+```ts
+import { createHmac, timingSafeEqual } from "node:crypto";
 
-<Warning>
-  Outbound webhook delivery and request signing are not implemented. Creating an endpoint record does not cause OurPocket to send events to your application, and you must not build a production workflow that depends on webhook delivery or signature verification yet.
-</Warning>
+function verify(rawBody: Buffer, header: string, secret: string): boolean {
+  const fields = Object.fromEntries(header.split(",").map((part) => part.split("=")));
+  const timestamp = Number(fields.t);
+  if (!Number.isFinite(timestamp) || Math.abs(Date.now() / 1000 - timestamp) > 300) return false;
+  const expected = createHmac("sha256", secret).update(`${fields.t}.${rawBody.toString("utf8")}`).digest("hex");
+  const received = fields.v1 ?? "";
+  return received.length === expected.length && timingSafeEqual(Buffer.from(received), Buffer.from(expected));
+}
+```
 
-## Create an endpoint record
+Persist event IDs to make your business handler idempotent. A retry or manual replay keeps the same event ID but creates a new delivery ID. Delivery attempts record HTTP status, latency, and a bounded redacted response. Automatic retries occur after 1 minute, 5 minutes, 30 minutes, 2 hours, and 12 hours. Open **Webhooks** for delivery history, test events, and replay, or use `GET /v1/projects/{projectId}/financial/deliveries` and `POST /v1/projects/{projectId}/financial/deliveries/{id}/replay`.
 
-<Steps>
-  <Step title="Select a project">
-    Open **Projects**, select **Use Project** for the target project, and confirm its **Selected** badge.
-  </Step>
-  <Step title="Open Webhooks">
-    Navigate to **Webhooks** to view endpoint records for the selected project.
-  </Step>
-  <Step title="Add an endpoint">
-    Select **Add Endpoint** and enter the URL requested by the form.
-  </Step>
-  <Step title="Save the record">
-    Submit the form, then confirm that the endpoint appears in the project's webhook list.
-  </Step>
-  <Step title="Review the subscriptions">
-    Verify that the record lists `transaction.success` and `transaction.failed`.
-  </Step>
-</Steps>
-
-<Note>
-  Saving the endpoint verifies configuration storage only. It does not test network reachability and does not send a test event.
-</Note>
-
-## Delete an endpoint record
-
-Delete an endpoint when you no longer want it stored in the project configuration.
-
-<Steps>
-  <Step title="Confirm the selected project">
-    Make sure the endpoint belongs to the project currently marked **Selected**.
-  </Step>
-  <Step title="Choose the endpoint">
-    Locate the endpoint record in **Webhooks** and use its delete action.
-  </Step>
-  <Step title="Confirm removal">
-    Verify that the record no longer appears in the project's endpoint list.
-  </Step>
-</Steps>
-
-## Plan for transaction updates
-
-Until outbound delivery is implemented, use an application-controlled strategy for tracking transaction outcomes. Persist transaction identifiers and references when you submit requests, and use available API request flows to check state where appropriate.
-
-Do not assume that:
-
-- A saved endpoint will receive HTTP requests.
-- A displayed or stored secret is used to sign outbound requests.
-- Your receiver can validate an OurPocket signature.
-- Endpoint creation provides delivery retries, logs, or delivery guarantees.
-
-## Troubleshooting
-
-### The endpoint receives no events
-
-This is expected in the current implementation because outbound webhook delivery is not available. Creating the record alone does not activate delivery.
-
-### I cannot select other event types
-
-Only `transaction.success` and `transaction.failed` are assigned to new endpoint records. Other subscriptions are not currently supported by the dashboard.
-
-### I cannot verify a webhook signature
-
-Request signing is not implemented. Do not infer a signing format or deploy signature-verification code based only on endpoint configuration fields.
-
-### The endpoint appears under the wrong project
-
-Return to **Projects**, select the intended project, and reopen **Webhooks**. Endpoint records follow the dashboard's local project context.
+Provider-to-OurPocket callbacks are a different flow. Paystack and Flutterwave signatures are verified against the connected Production credentials; OurPocket stores a deduplicated receipt and verifies the provider object before settlement. Your application receives the normalized OurPocket event described here.

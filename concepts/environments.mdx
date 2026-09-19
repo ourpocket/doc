@@ -1,49 +1,21 @@
 ---
-title: "Environments and URLs"
-description: "Configure frontend, API, database, ledger, and provider environments."
+title: "Sandbox and Production"
+description: "Understand project environments and their isolated resources."
 ---
 
-## API URLs
+Each project has a Sandbox and a Production environment. The key determines the project and environment for runtime `/v1` requests; you cannot override it with a request body or dashboard header.
 
-The backend uses URI versioning with version `1` as the default. Management and runtime APIs are normally available under:
-
-```text
-http://localhost:3000/v1
-```
-
-The normalized webhook ingress is version-neutral:
-
-```text
-http://localhost:3000/ourpocket/webhook
-```
-
-Swagger is mounted at:
-
-```text
-http://localhost:3000/docs
-```
-
-## Frontend variables
-
-| Variable | Default | Purpose |
+| | Sandbox | Production |
 | --- | --- | --- |
-| `VITE_API_BASE_URL` | `http://localhost:3000/v1` | Versioned API requests |
-| `VITE_API_PUBLIC_URL` | `http://localhost:3000` | Version-neutral routes and displayed webhook ingress URL |
+| Key prefix | `op_test_sk_` | `op_live_sk_` |
+| Provider credentials | Not needed | Your connected provider accounts |
+| Payments and refunds | Simulated | Paystack or Flutterwave hosted checkout and refunds |
+| Wallets | Simulated fiat balances | Turnkey or Privy chain address creation |
+| Funding, debit, internal transfer | Simulated | Unavailable |
+| Events, webhooks, logs | Environment-scoped | Environment-scoped |
 
-## Test and live scopes
+Sandbox supports explicit `success`, `failure`, `pending`, `insufficient_funds`, `timeout`, and `provider_outage` scenarios where the operation accepts a scenario. Pending operations can be completed or failed with `POST /v1/sandbox/operations/{id}/complete`. Timeout and outage scenarios are represented as `unknown`; they do not call an external provider.
 
-Project API keys use `test` and `live` scopes. The scope affects key identity and project key uniqueness.
+Production rejects simulation scenarios and fake funding. A hosted checkout starts `pending`, not completed; verify it against the original provider before treating it as settled. A provider timeout can leave an `unknown` operation. Inspect or reconcile that operation rather than starting another write with a different key.
 
-<Warning>
-  The repository does not implement separate databases, provider sandboxes, or routing behavior based only on key scope. Environment separation also depends on the provider credentials and deployment configuration used by your request.
-</Warning>
-
-## Provider environments
-
-Use sandbox credentials for development and production credentials only in live deployments. Paystack and Flutterwave interpret provider-specific payloads and environment credentials according to their APIs.
-
-## Ledger URL
-
-`LEDGER_URL` identifies the external ledger service and defaults to `http://localhost:4000`.
-
-Docker Compose does not include the ledger service. Configure a reachable URL explicitly when running the API in a container.
+The dashboard selector changes its management requests with `X-Environment: sandbox` or `production`. It does not alter what a project API key can access. Historical records without a provable environment are excluded from the normalized financial API.

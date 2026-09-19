@@ -1,96 +1,12 @@
 ---
 title: "Local development"
-description: "Run the OurPocket frontend and API locally."
+description: "Run the API, frontend, PostgreSQL, and webhook worker locally."
 ---
 
-## Prerequisites
+The normalized Sandbox financial API uses PostgreSQL and does not need provider credentials or the older external ledger. Production adapter tests should intercept provider HTTP and avoid real financial transactions.
 
-- Node.js 20 for the backend container workflow
-- pnpm for the backend package scripts
-- Bun for the frontend and TypeORM command used by the backend
-- Docker and Docker Compose for PostgreSQL and Redis
-- A reachable external ledger service
-- Provider sandbox credentials for provider-backed operations
+From `infra/`, install dependencies, configure its `.env` for PostgreSQL and JWT, then apply migrations in timestamp order. The financial migrations are `20260918000000-ProviderCatalog`, `20260919000000-FinancialInfrastructure`, and `20260920000000-FinancialControlPlane`. Use `bun run migration:run` and `bun run start:dev`. The backend exposes Swagger at `/docs`.
 
-## Backend configuration
+Set `PROVIDER_CONFIG_ENCRYPTION_KEY` to a stable secret for encrypted Production connections. Outbound webhook delivery needs Redis (`REDIS_HOST`, `REDIS_PORT`, optional `REDIS_PASSWORD`) and a backend worker with `FINANCIAL_WEBHOOK_WORKER=true`. An API-only process can use `FINANCIAL_WEBHOOK_WORKER=false`. Register webhook destinations with public HTTPS URLs; local/private addresses are rejected even in development.
 
-Create `infra/.env` and configure at least:
-
-```bash
-NODE_ENV=development
-PORT=3000
-JWT_SECRET=replace-with-a-long-secret
-DATABASE_HOST=localhost
-DATABASE_PORT=5432
-DATABASE_USERNAME=ourpocket
-DATABASE_PASSWORD=ourpocket
-DATABASE_NAME=ourpocket
-LEDGER_URL=http://localhost:4000
-FRONTEND_URL=http://localhost:3035
-```
-
-Email delivery additionally uses `RESEND_API_KEY`. Provider and project configuration encryption can use `PROVIDER_CONFIG_ENCRYPTION_KEY` and `PROJECT_API_KEY_ENCRYPTION_SECRET`.
-
-<Warning>
-  Do not rely on development fallback encryption secrets outside local development.
-</Warning>
-
-## Start dependencies
-
-From `infra/`:
-
-```bash
-docker compose up postgres redis -d
-```
-
-The Compose project does not provide the external ledger. Start that service separately and confirm `LEDGER_URL` is reachable from the API process.
-
-## Start the API
-
-```bash
-pnpm install
-pnpm run migration:run
-pnpm run seed
-pnpm run start:dev
-```
-
-The API listens on `http://localhost:3000` by default. Swagger is available at `http://localhost:3000/docs`.
-
-## Start the frontend
-
-From `ourpocket/`:
-
-```bash
-bun install
-bun run dev
-```
-
-Optional frontend configuration:
-
-```bash
-VITE_API_BASE_URL=http://localhost:3000/v1
-VITE_API_PUBLIC_URL=http://localhost:3000
-```
-
-The frontend listens on `http://localhost:3035`.
-
-## Validate changes
-
-Frontend:
-
-```bash
-bun run check
-bun run build
-```
-
-Backend:
-
-```bash
-pnpm run build
-pnpm run test
-pnpm run test:e2e
-```
-
-<Note>
-  Backend dependency build scripts may require explicit pnpm approval before compilation and tests can run in a fresh environment.
-</Note>
+From `ourpocket/`, run `bun install` and `bun run dev`. Set `VITE_API_BASE_URL` to the backend `/v1` URL if needed. Use the dashboard to register, create a project, and run [the Sandbox quickstart](/quickstart). The TypeScript SDK examples live in `ourpocket/packages/sdk/examples/`.

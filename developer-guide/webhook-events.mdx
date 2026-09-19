@@ -1,116 +1,29 @@
 ---
-title: "Webhook ingress"
-description: "Submit provider webhook data to OurPocket for project-scoped normalization."
+title: "Events and delivery"
+description: "Understand event payloads, filters, test events, and replay."
 ---
 
-OurPocket exposes an authenticated ingress endpoint that accepts provider webhook data and returns a normalized payload.
-
-<Warning>
-  Outbound webhook delivery to your application, payload signing, and retry scheduling are not implemented. Configuring a project webhook endpoint does not currently cause normalized ingress payloads to be delivered to that endpoint.
-</Warning>
-
-## Ingress endpoint
-
-```http
-POST /ourpocket/webhook
-```
-
-Unlike the other public endpoints in this guide, webhook ingress is version-neutral. Do not prefix it with `/v1`.
-
-The endpoint requires a project API key using either supported runtime authentication form:
-
-```http
-Authorization: Bearer <project-api-key>
-```
-
-or:
-
-```http
-x-api-key: <project-api-key>
-```
-
-Project-key verification consumes quota in the same way as other authenticated requests.
-
-## Request body
-
-| Field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `provider` | string | Yes | Source provider: `paystack` or `flutterwave` |
-| `event` | string | No | Normalized event name; defaults to `transaction.success` when omitted |
-| `amount` | number | No | Amount extracted from the source payload |
-| `currency` | string | No | Currency; returned in uppercase when supplied |
-| `reference` | string | No | OurPocket or merchant reference |
-| `providerReference` | string | No | Provider transaction or wallet reference |
-| `data` | object | No | Raw or additional provider payload data |
-
-```bash
-curl --request POST \
-  --url "$OURPOCKET_BASE_URL/ourpocket/webhook" \
-  --header "Authorization: Bearer $OURPOCKET_API_KEY" \
-  --header "Content-Type: application/json" \
-  --data '{
-    "provider": "paystack",
-    "event": "transaction.success",
-    "amount": 5000,
-    "currency": "ngn",
-    "reference": "transaction_10001",
-    "providerReference": "provider_ref_10001",
-    "data": {
-      "status": "success"
-    }
-  }'
-```
-
-## Normalized response
-
-A successful request uses the standard response envelope. The normalized payload appears in `data`:
+`GET /v1/events` with a project key lists the latest 100 events for that project's environment. A typical normalized event has this shape:
 
 ```json
 {
-  "message": "Request successful",
-  "status": "success",
+  "id": "event-uuid",
+  "type": "payment.completed",
+  "environment": "sandbox",
+  "requestId": "request-uuid",
+  "createdAt": "2026-09-19T12:00:00.000Z",
   "data": {
-    "event": "transaction.success",
-    "provider": "paystack",
-    "amount": 5000,
+    "id": "payment-uuid",
+    "kind": "payment",
+    "amount": "50000",
     "currency": "NGN",
-    "reference": "transaction_10001",
-    "providerReference": "provider_ref_10001",
-    "projectId": "project-id",
-    "data": {
-      "status": "success"
-    }
+    "status": "completed",
+    "provider": "paystack",
+    "providerReference": null
   }
 }
 ```
 
-The backend associates the normalized payload with the project resolved from the API key. It normalizes and returns the submitted fields; it does not persist a transaction, update a wallet, dispatch the result, or retry delivery.
+UUID placeholders above stand for real UUID values. The `data` object is the normalized resource snapshot at emission. Common event families include `customer.created`, `payment.created`, `payment.completed`, `payment.failed`, `refund.created`, `refund.completed`, `transfer.created`, `transfer.completed`, and `wallet.created`. `pending` and `unknown` events occur where supported. Select event names in the endpoint filter; the backend rejects unsupported filters.
 
-## Accepted event values
-
-When `event` is supplied, it must be one of these normalized values:
-
-| Event | Intended meaning |
-| --- | --- |
-| `transaction.success` | A transaction succeeded |
-| `transaction.failed` | A transaction failed |
-| `wallet.created` | A wallet was created |
-| `wallet.credited` | A wallet was credited |
-| `wallet.debited` | A wallet was debited |
-| `transfer.success` | A transfer succeeded |
-| `transfer.failed` | A transfer failed |
-
-These values classify the ingress payload. They are not a list of events that OurPocket currently delivers outbound.
-
-## Integration responsibilities
-
-- Authenticate requests to the ingress endpoint with the correct project key.
-- Verify the original provider webhook according to the provider's requirements before forwarding it when authenticity matters to your application.
-- Map provider-specific fields into the normalized request body.
-- Persist any event history or reconciliation state your application requires.
-- Use `POST /v1/transactions` for canonical durable OurPocket transaction records; webhook normalization does not create one.
-- Implement your own downstream delivery, signing, retry, and idempotency controls if you forward normalized payloads to another service.
-
-<Note>
-  A successful ingress response confirms normalization only. It does not confirm outbound delivery or a financial state change.
-</Note>
+Use **Webhooks** in the dashboard to send a test event, inspect each attempt's response, and replay an existing delivery. Replay creates a new delivery for the same event. Handle duplicates by event ID. The [webhook guide](/user-guide/webhooks) shows signature verification and retry behavior.

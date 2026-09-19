@@ -1,123 +1,26 @@
 ---
-title: "Provider routing"
-description: "Route provider-backed wallet operations across Paystack and Flutterwave."
+title: "Configure routing"
+description: "Save payment selection rules and inspect a routing decision."
 ---
 
-OurPocket can route supported provider-backed operations to Paystack or Flutterwave. Routing is driven by the provider credentials and metadata supplied by the caller in each request; it is not a claim about independently measured provider performance.
-
-Provider-routing fields can be used with supported credit and debit requests to `/v1/wallets/*` and with `POST /v1/transactions`. Wallet creation can also name a provider and supply provider credentials.
-
-## Supported providers
-
-| Provider value | Provider |
-| --- | --- |
-| `paystack` | Paystack |
-| `flutterwave` | Flutterwave |
-
-## Choose a provider explicitly
-
-For a single provider, specify the provider and its API key. `providerApiKey` is accepted as an explicit alias for `apiKey` on credit, debit, and transaction requests.
-
-```json
-{
-  "walletId": "4d845d2f-8314-45a1-b061-3ee56dbb29ec",
-  "amount": "5000",
-  "currency": "NGN",
-  "reference": "credit_10002",
-  "provider": "paystack",
-  "providerApiKey": "<paystack-secret-key>",
-  "providerPayload": {
-    "email": "customer@example.com"
-  }
-}
-```
-
-`providerPayload` is forwarded as provider-specific input. Its valid fields depend on the selected provider and operation.
-
-## Route among candidates
-
-Supply `providerCredentials` to make multiple providers eligible. Each entry contains a provider secret and may contain caller-supplied routing metadata.
-
-```json
-{
-  "routingStrategy": "custom_priority",
-  "providerPriority": ["paystack", "flutterwave"],
-  "providerCredentials": [
-    {
-      "provider": "paystack",
-      "apiKey": "<paystack-secret-key>",
-      "priority": 1
-    },
-    {
-      "provider": "flutterwave",
-      "apiKey": "<flutterwave-secret-key>",
-      "priority": 2
-    }
-  ]
-}
-```
-
-## Routing strategies
-
-| Strategy | Value used from each credential | Selection rule |
-| --- | --- | --- |
-| Best success rate | `successRate` | Prefer the highest caller-supplied value |
-| Lowest fees | `feePercentage` | Prefer the lowest caller-supplied value |
-| Fastest settlement | `settlementMinutes` | Prefer the lowest caller-supplied value |
-| Custom priority | `priority` and/or `providerPriority` | Prefer the caller-supplied ordering |
-
-Example using fee metadata:
+Use a Production project key for the normalized policy API. The dashboard also exposes `GET` and `POST /v1/projects/{projectId}/financial/routing-policy` with a user JWT and `X-Environment: production`.
 
 ```bash
-curl --request POST \
-  --url "$OURPOCKET_BASE_URL/v1/transactions" \
-  --header "Authorization: Bearer $OURPOCKET_API_KEY" \
-  --header "Content-Type: application/json" \
-  --data '{
-    "type": "credit",
-    "walletId": "4d845d2f-8314-45a1-b061-3ee56dbb29ec",
-    "amount": "5000",
-    "currency": "NGN",
-    "reference": "transaction_10002",
-    "routingStrategy": "lowest_fees",
-    "providerCredentials": [
-      {
-        "provider": "paystack",
-        "apiKey": "<paystack-secret-key>",
-        "feePercentage": 1.5
-      },
-      {
-        "provider": "flutterwave",
-        "apiKey": "<flutterwave-secret-key>",
-        "feePercentage": 1.4
-      }
-    ],
-    "providerPayload": {
-      "email": "customer@example.com"
-    },
-    "metadata": {
-      "orderId": "order_1284"
-    }
-  }'
+curl -X POST "$OURPOCKET_BASE_URL/routing-policy" \
+  -H "Authorization: Bearer $OURPOCKET_API_KEY" \
+  -H 'Content-Type: application/json' \
+  -d '{"strategy":"custom_priority","providerPriority":["paystack","flutterwave"],"requireHealthy":true,"safeFailover":false}'
 ```
 
-<Warning>
-  `successRate`, `feePercentage`, `settlementMinutes`, and priority values come from your request. OurPocket uses them as routing inputs but does not establish that they are current or accurate. Validate and update these values in your own system before sending them.
-</Warning>
+Strategies are `best_success_rate`, `lowest_fees`, `fastest_response`, and `custom_priority`. `lowest_fees` uses the operator's fee estimate, not a provider invoice. Mark a provider down and set a fee estimate with:
 
-## Provider data and application metadata
+```bash
+curl -X POST "$OURPOCKET_BASE_URL/provider-health/flutterwave" \
+  -H "Authorization: Bearer $OURPOCKET_API_KEY" \
+  -H 'Content-Type: application/json' \
+  -d '{"status":"down","estimatedFeeBps":150}'
+```
 
-Keep these two objects separate:
+Create a payment without a `provider` only after saving a policy or connecting a sole eligible provider. The resulting resource has `provider` and `details.routingDecision`. Explicit request selection remains available and requires a connected provider; it is not silently changed by the policy.
 
-- `providerPayload` contains provider-specific fields passed to the selected provider rail.
-- `metadata` contains your application context. On `POST /v1/transactions`, it is stored with the durable transaction and included in the external ledger operation.
-
-The external ledger remains responsible for balance entries. Provider routing selects and invokes a provider rail; it does not replace the ledger or make direct wallet calls durable in the local transaction store.
-
-## Credential handling
-
-<Warning>
-  Provider API keys are secrets supplied in request bodies. Send routing requests only from trusted server environments over HTTPS. Never place provider credentials in browser or mobile code, URLs, logs, or analytics events.
-</Warning>
-
-Use test provider credentials with an OurPocket test project key and live provider credentials with a live project key. This separation is an integration responsibility; do not infer provider credential mode from routing metadata.
+If a provider write times out, keep the returned operation ID and idempotency key. Read the operation or call `POST /v1/payments/{id}/verify`. The reconciliation run can inspect pending and unknown Production operations without repeating the write. See [payment statuses](/features/payments).

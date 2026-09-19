@@ -1,0 +1,27 @@
+---
+title: "Payments and refunds"
+description: "Create simulated payments or Production hosted checkout and verify settlement."
+---
+
+Create a Customer first. Then call `POST /v1/payments` with a project key and an `Idempotency-Key`:
+
+```json
+{
+  "customer": "customer-uuid",
+  "amount": "50000",
+  "currency": "NGN",
+  "provider": "paystack"
+}
+```
+
+Amounts are positive integer minor-unit strings. The `provider` is optional when only one eligible payment connection exists or a routing policy selects one. Flutterwave Production checkout also requires an HTTPS `callbackUrl`. Provider credentials are never accepted in the operation body.
+
+In Sandbox, the default `success` scenario completes immediately without contacting the named provider. Use `scenario` to simulate `failure`, `pending`, `insufficient_funds`, `timeout`, or `provider_outage`. Production rejects simulation scenarios.
+
+In Production, initialization returns a `pending` Payment with `details.checkoutUrl` and `details.checkoutReference`. Send your customer to that hosted URL. Initialization does **not** mean payment succeeded. After checkout, `POST /v1/payments/{id}/verify` reads the original provider and checks reference, amount, currency, and status. Signed inbound provider events also trigger provider verification. Final statuses are `completed` or `failed`; uncertain provider writes can be `unknown` and must be inspected or reconciled.
+
+## Refund a payment
+
+`POST /v1/refunds` accepts `{ "payment": "payment-uuid", "amount": "10000" }` with a new `Idempotency-Key`. Omit `amount` to request the remaining refundable amount. Concurrent requests cannot exceed the unrefunded payment. A Production refund may stay `pending`; `POST /v1/refunds/{id}/verify` checks the original provider reference and parent payment. Refunds have their own resource, status, provider reference, and events.
+
+Read resources with `GET /v1/payments/{id}`, `GET /v1/refunds/{id}`, or their list endpoints. See [transactions](/features/transactions) for the common record shape and [errors](/reference/errors) for uncertain outcomes.

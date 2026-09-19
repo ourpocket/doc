@@ -1,58 +1,19 @@
 ---
-title: "Authentication model"
-description: "Choose the correct credential for management and runtime requests."
+title: "Authentication"
+description: "Use a user JWT for management and a project key for runtime operations."
 ---
 
-OurPocket uses different credentials for users, projects, providers, and webhook registrations. They are not interchangeable.
+OurPocket uses separate credentials for management, financial operations, provider connections, and outbound webhooks.
 
-## Credential types
-
-| Credential | Used for | Transport |
+| Credential | Purpose | Where to send it |
 | --- | --- | --- |
-| User JWT | Dashboard and management endpoints | `Authorization: Bearer <jwt>` |
-| Project API key | Wallets, transactions, and webhook ingress | Bearer token or `x-api-key` |
-| Provider credential | Calls from OurPocket to a provider | Request payload or provider configuration |
-| Webhook secret | Reserved by webhook registration | Stored but not currently used for outbound signing |
+| User JWT | Project, provider, key, webhook, and dashboard management | `Authorization: Bearer <jwt>` |
+| `op_test_sk_` or `op_live_sk_` key | Runtime `/v1` financial APIs | `Authorization: Bearer <key>` or `x-api-key` |
+| Provider credentials | Your Production connection | Dashboard provider connection form; never in a payment or wallet body |
+| `whsec_` secret | Verify outbound events at your endpoint | Keep on your webhook receiver |
 
-## User JWT
+`POST /v1/auth/login` returns a user JWT. Create a project with that JWT, then store the one-time Sandbox key from the project response. Generate a Production key under the project's **API keys** when you are ready to connect real providers. Key listings show masked metadata; a rotation returns its replacement once. A revoked key cannot access runtime operations.
 
-`POST /v1/auth/login` returns a JWT. The dashboard stores it locally and attaches it to protected management requests.
+The runtime key determines both project and environment. Send an optional UUID `X-Request-Id` to correlate operations, events, deliveries, and logs. Never put a secret key in browser code or include provider credentials in a financial request body.
 
-```http
-Authorization: Bearer eyJhbGciOi...
-```
-
-The token contains user ID, email, role, and status. A banned status is rejected by protected management routes.
-
-<Warning>
-  User status is read from the signed token by the status guard. A status change may not take effect until the token expires and the user signs in again.
-</Warning>
-
-## Project API key
-
-Runtime APIs accept either header:
-
-```http
-Authorization: Bearer op_test_sk_...
-```
-
-```http
-x-api-key: op_test_sk_...
-```
-
-If both are provided, the bearer value takes precedence.
-
-Project-key verification resolves the project, checks expiration and quota, increments usage, and makes project context available to the operation.
-
-## Credential separation
-
-- Never use a user JWT in a customer application’s wallet integration.
-- Never expose a project key in browser code.
-- Never use a provider key as an OurPocket project key.
-- Never treat a webhook registration secret as implemented proof of request authenticity.
-
-## Registration and verification
-
-Local accounts begin unverified. Verification and password-reset tokens are random values stored as SHA-256 hashes and expire after ten minutes.
-
-The backend accepts a declared `google` registration provider, but the repository does not verify a Google identity token. Do not expose that path as Google OAuth without an external verification layer.
+Read [API keys](/developer-guide/api-keys) and [webhook signatures](/user-guide/webhooks) for the full lifecycle.

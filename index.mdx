@@ -1,54 +1,35 @@
 ---
-title: "OurPocket documentation"
-description: "Create wallets, move value, and route operations across providers from one API."
+title: "OurPocket"
+description: "Financial infrastructure for developers."
 ---
 
-OurPocket helps fintech teams add wallet infrastructure without building a separate integration for every provider. Use the dashboard to configure your project, then integrate the runtime API from your server.
+Connect your financial providers once. Build against one consistent API.
+
+OurPocket gives your application normalized payments, wallets, events, and operational controls. You keep your own provider accounts. OurPocket handles supported provider-specific checkout and wallet creation calls underneath.
 
 <CardGroup cols={2}>
-  <Card title="Get started" icon="rocket" href="/quickstart">
-    Create a project, prepare a test key, and make your first wallet request.
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Create a project and complete your first simulated payment without a provider account.
   </Card>
-
-  <Card title="Explore features" icon="grid-2" href="/features/overview">
-    Learn about wallets, transactions, routing, provider connections, and project environments.
+  <Card title="Sandbox" icon="flask" href="/concepts/environments">
+    Test payments, refunds, fiat wallets, transfers, events, and failures without moving money.
   </Card>
-
-  <Card title="Choose a language" icon="code" href="/sdks/overview">
-    Integrate from TypeScript, Python, Go, or PHP with reusable API clients.
+  <Card title="Supported providers" icon="plug" href="/user-guide/providers">
+    See which payment and wallet capabilities are implemented in Production.
   </Card>
-
-  <Card title="Create your first wallet" icon="wallet" href="/guides/create-first-wallet">
-    Follow a complete request and balance lookup workflow.
+  <Card title="API reference" icon="code" href="/reference/endpoints">
+    Find the normalized endpoints, authentication rules, and resource shapes.
   </Card>
 </CardGroup>
 
-## Build with OurPocket
+## How it works
 
-<Steps>
-  <Step title="Prepare your project">
-    Create an account and workspace, select a project, and prepare a test API key.
-  </Step>
-  <Step title="Choose provider behavior">
-    Start with ledger-only operations or provide Paystack or Flutterwave credentials when provider execution is required.
-  </Step>
-  <Step title="Create customer wallets">
-    Use your own customer ID and currency to create project-scoped wallets.
-  </Step>
-  <Step title="Move and track value">
-    Submit credits, debits, or transfers through durable transactions and store the returned transaction IDs.
-  </Step>
-</Steps>
+```text
+Your application → OurPocket API → Paystack or Flutterwave hosted checkout
+                                 → Turnkey or Privy chain wallet creation
+                  OurPocket events → Your signed webhook endpoint
+```
 
-## Popular guides
+Sandbox is a financial simulator scoped to your project. Production payments use connected Paystack or Flutterwave accounts. Production chain wallet creation uses connected Turnkey or Privy accounts. [Capabilities vary by provider](/user-guide/providers); a catalog entry alone does not mean it can execute an operation.
 
-<CardGroup cols={3}>
-  <Card title="API keys" icon="key" href="/developer-guide/api-keys">
-  </Card>
-
-  <Card title="Provider routing" icon="route" href="/features/routing">
-  </Card>
-
-  <Card title="Credit a wallet" icon="circle-dollar" href="/guides/credit-a-wallet">
-  </Card>
-</CardGroup>
+Start with [the quickstart](/quickstart), then use [routing decisions](/features/routing), [events and webhooks](/user-guide/webhooks), and [API logs](/features/transactions) to inspect what happened.

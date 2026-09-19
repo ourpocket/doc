@@ -1,47 +1,17 @@
 ---
-title: "Current limitations"
-description: "Understand implemented boundaries before relying on OurPocket in production."
+title: "Current boundaries"
+description: "See which parts of the financial control plane execute today."
 ---
 
-This page distinguishes current repository behavior from capabilities that may be planned or implied by the interface.
+This page describes implemented behavior, not a future roadmap.
 
-## Webhooks
+- Production payments and refunds use connected Paystack or Flutterwave. Checkout is hosted; initialization does not settle it.
+- Production wallet creation uses connected Turnkey or Privy for Ethereum or Solana addresses. It does not provide fiat balances, signing, policy management, on-chain transfers, or a production wallet ledger through the normalized API.
+- Sandbox fiat balances, funding, debits, and internal transfers are simulated in PostgreSQL. They do not move real money or use an external ledger.
+- Routing evaluates connected payment providers and a saved project policy. Provider status and fee estimates are operator configured; success rate and latency use recent observed operations. Failover only selects a provider before a write. There is no retry or failover after an uncertain provider outcome.
+- Reconciliation verifies pending and unknown Production payments and refunds with their original provider. It is not a three-way provider/ledger/bank settlement engine and does not resolve an unknown wallet creation automatically.
+- Signed outbound webhooks, retry scheduling, attempt history, test events, and replay exist. They require a running Redis-backed delivery worker. Financial logs expire after seven days.
+- Stablecoin infrastructure, KYC/identity, bank payouts, production fiat wallet funding, a native double-entry ledger, executable subscription billing, and enterprise SSO/RBAC are not implemented in these normalized APIs. Catalog visibility is not proof of execution support.
+- The TypeScript SDK is private source code in the frontend repository, not a published package. The old Python, Go, and PHP examples target compatibility endpoints.
 
-- Endpoint registration is implemented.
-- The normalized ingress endpoint is implemented.
-- Outbound event delivery is not implemented.
-- HMAC signing is not implemented.
-- Retry queues, delivery attempts, replay, and delivery logs are not implemented.
-- Provider-specific signature verification is not implemented.
-
-## Provider routing
-
-- Paystack and Flutterwave are executable routing adapters.
-- Routing metrics are supplied by the caller, not calculated from observed usage data.
-- Persisted project provider connections are not automatically used by the primary wallet and transaction routes.
-- Provider and ledger execution are not atomic.
-
-## Wallets and transactions
-
-- Balances belong to an external ledger not included in this repository.
-- Direct wallet credit, debit, and transfer operations do not create local transaction records.
-- Unified transaction references are unique, but duplicate requests return a conflict instead of the prior result.
-- The API does not define a universal major-unit or minor-unit amount convention across providers.
-
-## Credentials
-
-- Project API keys are encrypted and currently recoverable through backend list operations.
-- Webhook secrets are stored but not used for signing.
-- The declared Google registration path does not verify a Google identity token.
-- The backend permits provider credentials in runtime request bodies.
-
-## Operations
-
-- Redis is provisioned but not used by an active queue or cache.
-- Rate-limiting configuration exists, but a global throttling guard was not found.
-- CORS allows all origins in application bootstrap.
-- Structured request logging, tracing, and dependency health checks are not implemented.
-
-<Warning>
-  Complete a security, reconciliation, webhook, and ledger review before using this repository for production financial workloads.
-</Warning>
+Use the capability flags from `GET /v1/providers` and the environment-specific dashboard connection state before exposing a feature to customers.

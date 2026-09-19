@@ -1,55 +1,10 @@
 ---
-title: "Deployment"
-description: "Prepare the API, database, ledger, and frontend for a deployed environment."
+title: "Release order"
+description: "Configure the API and worker before exposing the new dashboard."
 ---
 
-## API image
+This is an operator note for self-hosted deployments. Back up PostgreSQL and apply the ProviderCatalog, FinancialInfrastructure, and FinancialControlPlane migrations in order. Set a stable `PROVIDER_CONFIG_ENCRYPTION_KEY`; changing it makes existing customer connections unreadable. Run Redis and at least one `FINANCIAL_WEBHOOK_WORKER=true` worker for outbound delivery, then release the backend API before the frontend.
 
-`infra/Dockerfile` provides development and production stages based on Node.js 20 Alpine. The production stage builds the NestJS application and starts `dist/src/main.js`.
+Confirm `/docs`, project creation and one-time Sandbox key delivery, a simulated operation, signed test webhook delivery and replay, and Production provider connection health. Do not route real provider transactions into a Sandbox key. Historical connections with no provable environment need to be reconnected to Production; normalized financial APIs exclude them.
 
-```bash
-docker build --target production -t ourpocket-api ./infra
-```
-
-## Required services
-
-A deployed API requires:
-
-- PostgreSQL
-- External ledger service
-- Provider network access
-- Email provider when verification and reset email delivery are enabled
-
-Redis is present in configuration and Compose, but the current source does not use it for a queue or cache.
-
-## Database migrations
-
-Run TypeORM migrations as a deployment step before starting new application instances.
-
-```bash
-pnpm run migration:run
-```
-
-Development uses schema synchronization. Production disables synchronization and depends on migrations.
-
-## Production configuration checklist
-
-- Set `NODE_ENV=production`.
-- Use a strong `JWT_SECRET`.
-- Set dedicated project-key and provider-configuration encryption secrets.
-- Configure a production PostgreSQL URL.
-- Configure a reachable and authenticated ledger service.
-- Configure `FRONTEND_URL` for email links.
-- Configure `RESEND_API_KEY` if email delivery is required.
-- Restrict CORS at the deployment boundary.
-- Use production provider credentials only with intended live workloads.
-- Run migrations before application traffic.
-- Add health checks for the API, database, ledger, and providers.
-
-## Current deployment considerations
-
-<Warning>
-  The repository does not include the external ledger service, automated migration entrypoint, container health checks, hosted deployment manifest, or outbound webhook worker.
-</Warning>
-
-The production database configuration enables SSL with certificate verification disabled. Review this setting for your database provider and security requirements.
+Production chain wallet creation requires customer-owned Turnkey or Privy credentials. Production hosted checkout and refunds require customer-owned Paystack or Flutterwave credentials. The current [boundaries](/operations/current-limitations) distinguish these operations from unimplemented stablecoin, bank payout, native ledger, and enterprise features.

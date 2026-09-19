@@ -12,55 +12,38 @@
     "pages": [
       {
         "group": "Get started",
-        "pages": ["index", "quickstart"]
+        "pages": ["index", "quickstart", "user-guide/account-and-projects", "concepts/environments", "concepts/authentication", "developer-guide/api-keys"]
       },
       {
-        "group": "Features",
-        "pages": [
-          "features/overview",
-          "features/wallets",
-          "features/transactions",
-          "features/routing",
-          "user-guide/providers",
-          "user-guide/webhooks"
-        ]
+        "group": "Providers",
+        "pages": ["user-guide/providers"]
       },
       {
-        "group": "Dashboard guide",
-        "pages": [
-          "user-guide/account-and-projects",
-          "developer-guide/api-keys",
-          "user-guide/wallets-and-transactions"
-        ]
+        "group": "Payments and wallets",
+        "pages": ["features/payments", "features/wallets", "features/transactions", "developer-guide/wallet-api"]
       },
       {
-        "group": "Language clients",
-        "pages": [
-          "sdks/overview",
-          "sdks/typescript",
-          "sdks/python",
-          "sdks/go",
-          "sdks/php"
-        ]
+        "group": "Events and webhooks",
+        "pages": ["user-guide/webhooks", "developer-guide/webhook-events"]
       },
       {
-        "group": "Integration guides",
-        "pages": [
-          "guides/create-first-wallet",
-          "guides/credit-a-wallet",
-          "guides/migrate-to-live"
-        ]
+        "group": "Routing and operations",
+        "pages": ["features/routing", "developer-guide/provider-routing", "guides/migrate-to-live", "operations/current-limitations"]
+      },
+      {
+        "group": "Developer tools",
+        "pages": ["developer-guide/idempotency", "developer-guide/api-logs"]
+      },
+      {
+        "group": "SDK",
+        "pages": ["sdks/overview", "sdks/typescript"]
       },
       {
         "group": "API reference",
         "pages": [
           "reference/api-conventions",
-          "developer-guide/wallet-api",
-          "developer-guide/provider-routing",
-          "developer-guide/webhook-events",
           "reference/errors",
-          "reference/endpoints",
-          "reference/enums"
+          "reference/endpoints"
         ]
       },
       {
